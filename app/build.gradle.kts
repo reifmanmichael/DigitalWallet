@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.digitalwallet"
-        minSdk = 26
+        minSdk = 30
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -56,5 +56,10 @@ dependencies {
         // UI Utilities
         implementation("de.hdodenhof:circleimageview:3.1.0")
         implementation("com.airbnb.android:lottie:6.7.1")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0") // For Real Currency API
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
 }

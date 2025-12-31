@@ -1,19 +1,21 @@
 package com.example.digitalwallet.Model;
 
 public class User {
-    public String uid, fullName, displayName, email, phone, address, accountType;
-    public double balance; // Shekels
+    public String uid;
+    public String displayName;
+    public String email;
+    public String phone;
+    public double balance;
+    public String profileColor; // New Field
 
-    public User() {} // Required for Firebase
+    public User() {}
 
-    public User(String uid, String fullName, String displayName, String email, String phone, String address, String accountType) {
+    public User(String uid, String displayName, String email, String phone, double balance, String profileColor) {
         this.uid = uid;
-        this.fullName = fullName;
         this.displayName = displayName;
         this.email = email;
         this.phone = phone;
-        this.address = address;
-        this.accountType = accountType;
-        this.balance = 0.00; // Default balance
+        this.balance = balance;
+        this.profileColor = profileColor;
     }
 }
