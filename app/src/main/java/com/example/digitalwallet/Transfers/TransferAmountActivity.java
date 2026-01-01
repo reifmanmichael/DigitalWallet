@@ -17,7 +17,7 @@ import com.example.digitalwallet.Transfers.TransferReasonActivity;
 
 public class TransferAmountActivity extends AppCompatActivity {
 
-    private String recipientUid, recipientName;
+    private String recipientUid, recipientName, mode;
     private EditText etAmount;
     private TextView btnContinue;
     private boolean isValid = false;
@@ -30,6 +30,7 @@ public class TransferAmountActivity extends AppCompatActivity {
         // Get Data
         recipientUid = getIntent().getStringExtra("recipient_uid");
         recipientName = getIntent().getStringExtra("recipient_name");
+        mode = getIntent().getStringExtra("mode");
 
         // Set UI
         ((TextView) findViewById(R.id.tvRecipientName)).setText(recipientName);
@@ -82,6 +83,7 @@ public class TransferAmountActivity extends AppCompatActivity {
                 intent.putExtra("recipient_uid", recipientUid);
                 intent.putExtra("recipient_name", recipientName);
                 intent.putExtra("amount", etAmount.getText().toString());
+                intent.putExtra("mode", mode);
                 startActivity(intent);
             }
         });

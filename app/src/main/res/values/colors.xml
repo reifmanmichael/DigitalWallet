@@ -6,6 +6,7 @@
     <color name="background_off_white">#F2F2F7</color>
     <color name="background_white">#FFFFFF</color>
     <color name="white_card">#FFFFFF</color>
+    <color name="white">#FFFFFF</color>
     <color name="input_bg">#F2F2F7</color> <color name="text_black">#000000</color>
     <color name="text_gray">#8E8E93</color>
     <color name="text_light">#FFFFFF</color>

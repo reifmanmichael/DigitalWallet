@@ -1,21 +1,16 @@
 package com.example.digitalwallet;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,7 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SendActivity extends AppCompatActivity {
+public class RequestActivity extends AppCompatActivity {
 
     private EditText etSearch;
     private RecyclerView recyclerView;
@@ -47,14 +42,15 @@ public class SendActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_send);
+        setContentView(R.layout.activity_request);
 
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            finish(); return;
+        }
         myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         etSearch = findViewById(R.id.etSearch);
         recyclerView = findViewById(R.id.recyclerContacts);
-
-        findViewById(R.id.btnNewContact).setVisibility(View.GONE);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ContactAdapter(filteredList);
@@ -63,7 +59,9 @@ public class SendActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         findViewById(R.id.btnMobileTransfer).setOnClickListener(v -> {
-            startActivity(new Intent(SendActivity.this, TransferMobileActivity.class));
+            Intent intent = new Intent(this, TransferMobileActivity.class);
+            intent.putExtra("mode", "request");
+            startActivity(intent);
         });
 
         setupSearch();
@@ -104,14 +102,6 @@ public class SendActivity extends AppCompatActivity {
                             if (u != null) {
                                 if (u.uid == null) u.uid = snapshot.getKey();
                                 
-                                // SECURITY: Don't add yourself to your own contacts
-                                if (u.uid != null && u.uid.equals(myUid)) {
-                                    processedIds.add(id);
-                                    if (processedIds.size() >= totalToFetch) filter(etSearch.getText().toString());
-                                    return;
-                                }
-
-                                // DEDUPLICATION LOGIC
                                 boolean alreadyExists = false;
                                 for (User existing : savedContacts) {
                                     if (u.uid.equals(existing.uid)) {
@@ -178,9 +168,10 @@ public class SendActivity extends AppCompatActivity {
             ProfileUtils.setProfileInitial(holder.profileContainer, u.displayName, u.profileColor);
 
             holder.itemView.setOnClickListener(v -> {
-                Intent intent = new Intent(SendActivity.this, TransferAmountActivity.class);
+                Intent intent = new Intent(RequestActivity.this, TransferAmountActivity.class);
                 intent.putExtra("recipient_uid", u.uid);
                 intent.putExtra("recipient_name", u.displayName);
+                intent.putExtra("mode", "request");
                 startActivity(intent);
             });
         }

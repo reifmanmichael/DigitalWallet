@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import com.example.digitalwallet.MainActivity;
 import com.example.digitalwallet.Model.User;
 import com.example.digitalwallet.R;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -34,6 +35,8 @@ public class TransferMobileActivity extends AppCompatActivity {
     private TextView btnContinue, tvResultName;
     private LinearLayout layoutUserResult;
     private ProgressBar progressBar;
+    private String mode;
+    private String myUid;
 
     private Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
@@ -43,6 +46,11 @@ public class TransferMobileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_transfer_mobile);
+
+        mode = getIntent().getStringExtra("mode");
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
 
         etPhone = findViewById(R.id.etPhone);
         btnContinue = findViewById(R.id.btnContinue);
@@ -64,6 +72,7 @@ public class TransferMobileActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, TransferAmountActivity.class);
                 intent.putExtra("recipient_uid", foundUser.uid);
                 intent.putExtra("recipient_name", foundUser.displayName);
+                intent.putExtra("mode", mode);
                 startActivity(intent);
             }
         });
@@ -104,15 +113,21 @@ public class TransferMobileActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             // User Found
                             for (DataSnapshot child : snapshot.getChildren()) {
-                                foundUser = child.getValue(User.class);
-                                if (foundUser != null) {
+                                User user = child.getValue(User.class);
+                                if (user != null) {
+                                    if (user.uid == null) user.uid = child.getKey();
+                                    
+                                    // SECURITY: Cannot send/request to yourself
+                                    if (user.uid != null && user.uid.equals(myUid)) {
+                                        Toast.makeText(TransferMobileActivity.this, "You cannot transfer to yourself", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+                                    
+                                    foundUser = user;
                                     showFoundUser(foundUser);
                                     return;
                                 }
                             }
-                        } else {
-                            // User Not Found
-                            // You could show an error text here if desired
                         }
                     }
                     @Override public void onCancelled(@NonNull DatabaseError error) {

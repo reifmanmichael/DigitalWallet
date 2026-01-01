@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DigitalWallet">
         <activity
+            android:name=".RequestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ContactDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".HistoryActivity"
             android:exported="false" />
         <activity

@@ -1,6 +1,7 @@
 package com.example.digitalwallet.Fragments;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -11,18 +12,21 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
+import com.example.digitalwallet.ContactDetailsActivity;
 import com.example.digitalwallet.HistoryActivity;
 import com.example.digitalwallet.Model.Transaction;
 import com.example.digitalwallet.Model.User;
 import com.example.digitalwallet.R;
+import com.example.digitalwallet.RequestActivity;
 import com.example.digitalwallet.SendActivity;
-import com.example.digitalwallet.Transfers.TransferAmountActivity;
+import com.example.digitalwallet.Utils.ProfileUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -36,29 +40,36 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class HomeFragment extends Fragment {
 
     private TextView tvMainBalance, tvStickyBalance, tvCurrencySymbol;
     private View stickyHeader, balanceContainer;
     private LinearLayout recentContainer, mostActiveContainer;
-    private DatabaseReference mDatabase;
+    private DatabaseReference mUserRef;
+    private DatabaseReference mRootRef;
+    private String myUid;
+    private double myCurrentBalance = 0;
+    
+    private final Set<String> displayedMostActiveUids = new HashSet<>();
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
+        mRootRef = FirebaseDatabase.getInstance().getReference();
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            mDatabase = FirebaseDatabase.getInstance().getReference("Users").child(uid);
+            myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            mUserRef = mRootRef.child("Users").child(myUid);
         }
 
-        // Views
         tvMainBalance = view.findViewById(R.id.tvMainBalance);
         tvStickyBalance = view.findViewById(R.id.tvStickyBalance);
         tvCurrencySymbol = view.findViewById(R.id.tvCurrencySymbol);
@@ -68,12 +79,9 @@ public class HomeFragment extends Fragment {
         recentContainer = view.findViewById(R.id.recentActivityContainer);
         mostActiveContainer = view.findViewById(R.id.mostActiveContainer);
 
-        // Initial State
         tvCurrencySymbol.setVisibility(View.GONE);
         tvMainBalance.setText("Loading...");
-        tvMainBalance.setTextSize(32);
 
-        // Sticky Header Logic
         NestedScrollView scrollView = view.findViewById(R.id.homeScrollView);
         scrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             int threshold = balanceContainer.getHeight();
@@ -84,14 +92,11 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Buttons
         btnDeposit.setOnClickListener(v -> depositDummyMoney());
         view.findViewById(R.id.btnSend).setOnClickListener(v -> startActivity(new Intent(getActivity(), SendActivity.class)));
-
-        // "See All" History
+        view.findViewById(R.id.btnRequest).setOnClickListener(v -> startActivity(new Intent(getActivity(), RequestActivity.class)));
         view.findViewById(R.id.btnSeeAllHistory).setOnClickListener(v -> startActivity(new Intent(getActivity(), HistoryActivity.class)));
 
-        // Load Data
         loadUserData();
         loadRecentActivity();
         loadMostActive();
@@ -100,12 +105,13 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadUserData() {
-        if (mDatabase == null) return;
-        mDatabase.addValueEventListener(new ValueEventListener() {
+        if (mUserRef == null) return;
+        mUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 User user = snapshot.getValue(User.class);
                 if (user != null) {
+                    myCurrentBalance = user.balance;
                     tvCurrencySymbol.setVisibility(View.VISIBLE);
                     tvMainBalance.setTextSize(56);
                     tvMainBalance.setText(String.format("%.2f", user.balance));
@@ -120,119 +126,180 @@ public class HomeFragment extends Fragment {
         View view = LayoutInflater.from(getContext()).inflate(R.layout.item_recent_activity, recentContainer, false);
 
         TextView name = view.findViewById(R.id.tvTxName);
-        TextView date = view.findViewById(R.id.tvTxDate);
+        TextView details = view.findViewById(R.id.tvTxDate);
         TextView amount = view.findViewById(R.id.tvTxAmount);
+        View profileContainer = view.findViewById(R.id.layoutProfileContainer);
         ImageView icon = view.findViewById(R.id.imgTxIcon);
+        LinearLayout layoutActions = view.findViewById(R.id.layoutRequestActions);
+        TextView btnAccept = view.findViewById(R.id.btnAccept);
+        TextView btnDecline = view.findViewById(R.id.btnDecline);
 
         name.setText(tx.relatedUserName != null ? tx.relatedUserName : "Unknown");
 
-        // Date Format
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-        date.setText(sdf.format(new Date(tx.timestamp)));
+        SimpleDateFormat sdf = new SimpleDateFormat("d.M.yy", Locale.getDefault());
+        String dateStr = sdf.format(new Date(tx.timestamp));
+        
+        String statusText = tx.status != null ? tx.status : "completed";
+        statusText = statusText.substring(0, 1).toUpperCase() + statusText.substring(1);
+        details.setText(dateStr + " • " + statusText);
 
+        amount.setText("₪" + String.format("%.2f", tx.amount));
+        amount.setTextColor(Color.BLACK);
+
+        // Set Profile Initial
+        ProfileUtils.setProfileInitial(profileContainer, tx.relatedUserName, tx.relatedUserColor);
+
+        // Icon logic with colorized backgrounds
+        icon.setColorFilter(Color.BLACK);
         if ("sent".equals(tx.type)) {
-            amount.setText("- ₪" + String.format("%.2f", tx.amount));
-            amount.setTextColor(Color.BLACK);
             icon.setImageResource(R.drawable.ic_arrow_send);
-            icon.setColorFilter(Color.BLACK);
-            icon.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#F2F2F7")));
+            icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFE5E5"))); // Light Red
         } else {
-            amount.setText("+ ₪" + String.format("%.2f", tx.amount));
-            amount.setTextColor(Color.parseColor("#34C759")); // Green
-            icon.setImageResource(R.drawable.ic_arrow_request); // Or a down arrow
-            icon.setColorFilter(Color.parseColor("#34C759"));
-            icon.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#E0F8E5")));
+            icon.setImageResource(R.drawable.ic_arrow_request);
+            icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E5F9E5"))); // Light Green
+        }
+
+        // REQUEST LOGIC
+        if ("pending".equals(tx.status)) {
+            if (!myUid.equals(tx.initiatorUid)) {
+                layoutActions.setVisibility(View.VISIBLE);
+                
+                if ("sent".equals(tx.type)) {
+                    boolean canAccept = myCurrentBalance >= tx.amount;
+                    if (canAccept) {
+                        btnAccept.setAlpha(1.0f);
+                        btnAccept.setOnClickListener(v -> handleRequest(tx, true));
+                    } else {
+                        btnAccept.setAlpha(0.3f);
+                        btnAccept.setOnClickListener(v -> Toast.makeText(getContext(), "Insufficient funds to accept", Toast.LENGTH_SHORT).show());
+                    }
+                } else {
+                    btnAccept.setAlpha(1.0f);
+                    btnAccept.setOnClickListener(v -> handleRequest(tx, true));
+                }
+
+                btnDecline.setOnClickListener(v -> handleRequest(tx, false));
+            }
         }
 
         recentContainer.addView(view);
-        // Add separator
         View line = new View(getContext());
         line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
         line.setBackgroundColor(Color.parseColor("#F2F2F7"));
         recentContainer.addView(line);
     }
 
-    private void loadRecentActivity() {
-        if (mDatabase == null) return;
+    private void handleRequest(Transaction tx, boolean accept) {
+        Map<String, Object> updates = new HashMap<>();
+        String status = accept ? "completed" : "declined";
 
-        Query query = mDatabase.child("transactions").orderByChild("timestamp").limitToLast(5);
+        if (accept) {
+            mRootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot root) {
+                    double myBal = Double.parseDouble(root.child("Users").child(myUid).child("balance").getValue().toString());
+                    double otherBal = Double.parseDouble(root.child("Users").child(tx.relatedUserUid).child("balance").getValue().toString());
+
+                    if ("sent".equals(tx.type)) {
+                        if (myBal < tx.amount) {
+                            Toast.makeText(getContext(), "Insufficient funds", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
+                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                    } else {
+                        if (otherBal < tx.amount) {
+                            Toast.makeText(getContext(), "Other user has insufficient funds", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
+                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal - tx.amount);
+                    }
+                    finalizeRequestUpdate(tx, status, updates);
+                }
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        } else {
+            finalizeRequestUpdate(tx, status, updates);
+        }
+    }
+
+    private void finalizeRequestUpdate(Transaction tx, String status, Map<String, Object> updates) {
+        updates.put("Users/" + myUid + "/transactions/" + tx.id + "/status", status);
+        updates.put("Users/" + tx.relatedUserUid + "/transactions/" + tx.id + "/status", status);
+        
+        mRootRef.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String msg = status.equals("completed") ? "Transaction completed!" : "Transaction declined.";
+                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadRecentActivity() {
+        if (mUserRef == null) return;
+        Query query = mUserRef.child("transactions").orderByChild("timestamp").limitToLast(3);
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // SAFETY CHECK: Ensure Fragment is still alive and attached
                 if (!isAdded() || getContext() == null) return;
-
                 recentContainer.removeAllViews();
                 List<Transaction> list = new ArrayList<>();
-
                 for (DataSnapshot data : snapshot.getChildren()) {
                     list.add(data.getValue(Transaction.class));
                 }
                 Collections.reverse(list);
-
                 if (list.isEmpty()) {
-                    TextView empty = new TextView(getContext());
-                    empty.setText("No recent transactions");
-                    empty.setTextColor(Color.GRAY);
-                    empty.setTextSize(14);
-                    empty.setGravity(Gravity.CENTER);
-                    empty.setPadding(0, 80, 0, 80);
-
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT);
-                    empty.setLayoutParams(params);
-
-                    recentContainer.addView(empty);
+                    showEmptyHistory();
                 } else {
-                    for (Transaction tx : list) {
-                        addTransactionView(tx);
-                    }
+                    for (Transaction tx : list) addTransactionView(tx);
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
-    private void loadMostActive() {
-        if (mDatabase == null) return;
+    private void showEmptyHistory() {
+        TextView empty = new TextView(getContext());
+        empty.setText("No recent transactions");
+        empty.setTextColor(Color.GRAY);
+        empty.setGravity(Gravity.CENTER);
+        empty.setPadding(0, 80, 0, 80);
+        recentContainer.addView(empty);
+    }
 
-        mDatabase.child("frequencies").orderByValue().limitToLast(4)
+    private void loadMostActive() {
+        if (mUserRef == null) return;
+        mUserRef.child("frequencies").orderByValue().limitToLast(4)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        // SAFETY CHECK: Ensure Fragment is still alive
                         if (!isAdded() || getContext() == null) return;
-
+                        
                         mostActiveContainer.removeAllViews();
+                        displayedMostActiveUids.clear();
+                        
                         List<String> userIds = new ArrayList<>();
-                        for (DataSnapshot data : snapshot.getChildren()) {
-                            userIds.add(data.getKey());
-                        }
+                        for (DataSnapshot data : snapshot.getChildren()) userIds.add(data.getKey());
                         Collections.reverse(userIds);
-
+                        
                         if (userIds.isEmpty()) {
-                            TextView empty = new TextView(getContext());
-                            empty.setText("No contacts yet");
-                            empty.setTextColor(Color.GRAY);
-                            empty.setTextSize(14);
-                            empty.setGravity(Gravity.CENTER);
-                            empty.setPadding(0, 80, 0, 80);
-
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.WRAP_CONTENT);
-                            empty.setLayoutParams(params);
-
-                            mostActiveContainer.addView(empty);
+                            showEmptyMostActive();
                         } else {
-                            for (String id : userIds) {
-                                fetchAndAddActiveContact(id);
-                            }
+                            for (String id : userIds) fetchAndAddActiveContact(id);
                         }
                     }
                     @Override public void onCancelled(@NonNull DatabaseError error) {}
                 });
+    }
+
+    private void showEmptyMostActive() {
+        TextView empty = new TextView(getContext());
+        empty.setText("No contacts yet");
+        empty.setTextColor(Color.GRAY);
+        empty.setGravity(Gravity.CENTER);
+        empty.setPadding(0, 80, 0, 80);
+        mostActiveContainer.addView(empty);
     }
 
     private void fetchAndAddActiveContact(String userId) {
@@ -241,31 +308,27 @@ public class HomeFragment extends Fragment {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (!isAdded() || getContext() == null) return;
+                        
+                        if (displayedMostActiveUids.contains(userId)) return;
+                        displayedMostActiveUids.add(userId);
 
                         User u = snapshot.getValue(User.class);
                         if (u != null) {
+                            if (u.uid == null) u.uid = userId;
+                            
                             View view = LayoutInflater.from(getContext()).inflate(R.layout.item_most_active, mostActiveContainer, false);
-                            ImageView img = view.findViewById(R.id.imgActiveProfile);
+                            View profileContainer = view.findViewById(R.id.layoutProfileContainer);
+                            
+                            ProfileUtils.setProfileInitial(profileContainer, u.displayName, u.profileColor);
 
-                            String color = u.profileColor != null ? u.profileColor : "#E5E5EA";
-                            img.setColorFilter(Color.parseColor(color));
-
-                            // --- FIX: Distribute evenly (Weight = 1) ---
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                                    0,
-                                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                                    1.0f
-                            );
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
                             view.setLayoutParams(params);
-                            // -------------------------------------------
-
-                            TextView name = view.findViewById(R.id.tvActiveName);
-                            name.setText(u.displayName.split(" ")[0]);
-
+                            ((TextView) view.findViewById(R.id.tvActiveName)).setText(u.displayName.split(" ")[0]);
                             view.setOnClickListener(v -> {
-                                Intent intent = new Intent(getActivity(), TransferAmountActivity.class);
-                                intent.putExtra("recipient_uid", u.uid);
-                                intent.putExtra("recipient_name", u.displayName);
+                                Intent intent = new Intent(getActivity(), ContactDetailsActivity.class);
+                                intent.putExtra("contact_uid", u.uid);
+                                intent.putExtra("contact_name", u.displayName);
+                                intent.putExtra("contact_color", u.profileColor);
                                 startActivity(intent);
                             });
                             mostActiveContainer.addView(view);
@@ -276,11 +339,11 @@ public class HomeFragment extends Fragment {
     }
 
     private void depositDummyMoney() {
-        if (mDatabase == null) return;
-        mDatabase.child("balance").get().addOnSuccessListener(snapshot -> {
+        if (mUserRef == null) return;
+        mUserRef.child("balance").get().addOnSuccessListener(snapshot -> {
             double current = 0;
             if (snapshot.exists()) current = Double.parseDouble(Objects.requireNonNull(snapshot.getValue()).toString());
-            mDatabase.child("balance").setValue(current + 1000.00);
+            mUserRef.child("balance").setValue(current + 1000.00);
         });
     }
 }

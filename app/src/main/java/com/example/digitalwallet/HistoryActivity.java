@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.digitalwallet.Model.Transaction;
+import com.example.digitalwallet.Utils.ProfileUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -41,8 +42,7 @@ public class HistoryActivity extends AppCompatActivity {
     private EditText etSearch;
     private TextView btnAll, btnSent, btnReceived;
 
-    // State
-    private String currentFilterType = "all"; // all, sent, received
+    private String currentFilterType = "all";
     private String currentSearchQuery = "";
 
     @Override
@@ -50,22 +50,18 @@ public class HistoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        // UI Refs
         etSearch = findViewById(R.id.etSearch);
         btnAll = findViewById(R.id.btnFilterAll);
         btnSent = findViewById(R.id.btnFilterSent);
         btnReceived = findViewById(R.id.btnFilterReceived);
 
-        // Setup Recycler
         recyclerView = findViewById(R.id.recyclerHistory);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new HistoryAdapter(filteredList);
         recyclerView.setAdapter(adapter);
 
-        // Actions
         findViewById(R.id.btnClose).setOnClickListener(v -> finish());
 
-        // Search Logic
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -75,7 +71,6 @@ public class HistoryActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        // Filter Buttons
         btnAll.setOnClickListener(v -> updateFilterType("all"));
         btnSent.setOnClickListener(v -> updateFilterType("sent"));
         btnReceived.setOnClickListener(v -> updateFilterType("received"));
@@ -85,12 +80,9 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void updateFilterType(String type) {
         currentFilterType = type;
-
-        // Update Visuals (Black for active, Gray for inactive)
         updateBtnVisual(btnAll, type.equals("all"));
         updateBtnVisual(btnSent, type.equals("sent"));
         updateBtnVisual(btnReceived, type.equals("received"));
-
         applyFilters();
     }
 
@@ -106,21 +98,9 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void applyFilters() {
         filteredList.clear();
-
         for (Transaction tx : fullList) {
-            // 1. Check Type
             boolean typeMatch = currentFilterType.equals("all") || tx.type.equals(currentFilterType);
-
-            // 2. Check Search (Name or whatever data we have)
-            // Note: Since Transaction object currently only stores "relatedUserName",
-            // searching email/phone would require updating the Transaction model to store those too.
-            // For now, we search the Name.
-            boolean searchMatch = currentSearchQuery.isEmpty();
-            if (!currentSearchQuery.isEmpty() && tx.relatedUserName != null) {
-                if (tx.relatedUserName.toLowerCase().contains(currentSearchQuery)) {
-                    searchMatch = true;
-                }
-            }
+            boolean searchMatch = currentSearchQuery.isEmpty() || (tx.relatedUserName != null && tx.relatedUserName.toLowerCase().contains(currentSearchQuery));
 
             if (typeMatch && searchMatch) {
                 filteredList.add(tx);
@@ -130,6 +110,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void loadHistory() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseDatabase.getInstance().getReference("Users").child(uid).child("transactions")
                 .orderByChild("timestamp")
@@ -140,14 +121,13 @@ public class HistoryActivity extends AppCompatActivity {
                         for (DataSnapshot data : snapshot.getChildren()) {
                             fullList.add(data.getValue(Transaction.class));
                         }
-                        Collections.reverse(fullList); // Newest first
-                        applyFilters(); // Apply current filters to new data
+                        Collections.reverse(fullList);
+                        applyFilters();
                     }
                     @Override public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
 
-    // --- ADAPTER ---
     class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         List<Transaction> list;
         HistoryAdapter(List<Transaction> list) { this.list = list; }
@@ -160,40 +140,42 @@ public class HistoryActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Transaction tx = list.get(position);
-            String color = tx.relatedUserColor != null ? tx.relatedUserColor : "#E5E5EA";
             holder.name.setText(tx.relatedUserName != null ? tx.relatedUserName : "Unknown");
 
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-            holder.date.setText(sdf.format(new Date(tx.timestamp)));
+            SimpleDateFormat sdf = new SimpleDateFormat("d.M.yy", Locale.getDefault());
+            String dateStr = sdf.format(new Date(tx.timestamp));
+            String status = tx.status != null ? tx.status : "completed";
+            status = status.substring(0, 1).toUpperCase() + status.substring(1);
+            holder.details.setText(dateStr + " • " + status);
 
-            holder.icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(color)));
-            holder.icon.setColorFilter(Color.WHITE);
+            holder.amount.setText("₪" + String.format("%.2f", tx.amount));
+            holder.amount.setTextColor(Color.BLACK);
 
+            ProfileUtils.setProfileInitial(holder.profileContainer, tx.relatedUserName, tx.relatedUserColor);
+
+            // COLOR CODED ICON
+            holder.icon.setColorFilter(Color.BLACK);
             if ("sent".equals(tx.type)) {
-                holder.amount.setText("- ₪" + String.format("%.2f", tx.amount));
-                holder.amount.setTextColor(Color.BLACK);
                 holder.icon.setImageResource(R.drawable.ic_arrow_send);
-                holder.icon.setColorFilter(Color.BLACK);
-                holder.icon.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#F2F2F7")));
+                holder.icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFE5E5"))); // Light Red
             } else {
-                holder.amount.setText("+ ₪" + String.format("%.2f", tx.amount));
-                holder.amount.setTextColor(Color.parseColor("#34C759"));
                 holder.icon.setImageResource(R.drawable.ic_arrow_request);
-                holder.icon.setColorFilter(Color.parseColor("#34C759"));
-                holder.icon.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#E0F8E5")));
+                holder.icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E5F9E5"))); // Light Green
             }
         }
 
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView name, date, amount;
+            TextView name, details, amount;
+            View profileContainer;
             ImageView icon;
             ViewHolder(View v) {
                 super(v);
                 name = v.findViewById(R.id.tvTxName);
-                date = v.findViewById(R.id.tvTxDate);
+                details = v.findViewById(R.id.tvTxDate);
                 amount = v.findViewById(R.id.tvTxAmount);
+                profileContainer = v.findViewById(R.id.layoutProfileContainer);
                 icon = v.findViewById(R.id.imgTxIcon);
             }
         }

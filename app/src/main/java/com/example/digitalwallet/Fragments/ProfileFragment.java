@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import com.example.digitalwallet.LoginActivity;
 import com.example.digitalwallet.Model.User;
 import com.example.digitalwallet.R;
+import com.example.digitalwallet.Utils.ProfileUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -24,7 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class ProfileFragment extends Fragment {
 
-    private ImageView imgProfileBackground; // Note the name change to match XML
+    private View profileContainer;
     private TextView tvName, tvDetail, btnSignOut;
     private FirebaseAuth mAuth;
 
@@ -36,7 +37,7 @@ public class ProfileFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
 
         // Initialize Views
-        imgProfileBackground = view.findViewById(R.id.imgProfileBackground);
+        profileContainer = view.findViewById(R.id.layoutProfileContainer);
         tvName = view.findViewById(R.id.tvProfileName);
         tvDetail = view.findViewById(R.id.tvProfileDetail);
         btnSignOut = view.findViewById(R.id.btnSignOut);
@@ -69,14 +70,7 @@ public class ProfileFragment extends Fragment {
                             tvName.setText(user.displayName);
                             tvDetail.setText(user.email);
 
-                            // --- APPLY PROFILE COLOR TO THE BACKGROUND CIRCLE ---
-                            String colorCode = user.profileColor != null ? user.profileColor : "#E5E5EA";
-                            try {
-                                // This tints the background circle shape
-                                imgProfileBackground.setColorFilter(Color.parseColor(colorCode));
-                            } catch (IllegalArgumentException e) {
-                                imgProfileBackground.setColorFilter(Color.GRAY);
-                            }
+                            ProfileUtils.setProfileInitial(profileContainer, user.displayName, user.profileColor);
                         }
                     }
 

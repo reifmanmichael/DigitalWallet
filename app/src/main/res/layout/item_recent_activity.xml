@@ -1,51 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingVertical="14dp"
-    android:paddingHorizontal="4dp">
-
-    <ImageView
-        android:id="@+id/imgTxIcon"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:src="@drawable/bg_circle_shape"
-        android:padding="11dp" />
+    android:orientation="vertical">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:layout_marginStart="16dp">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingVertical="14dp"
+        android:paddingHorizontal="4dp">
 
-        <TextView
-            android:id="@+id/tvTxName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Name"
-            android:textStyle="bold"
-            android:textColor="@color/text_black"
-            android:textSize="16sp"/>
+        <!-- 1. Transaction Icon (Arrow) -->
+        <ImageView
+            android:id="@+id/imgTxIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="6dp"
+            android:background="@drawable/bg_circle_shape"
+            android:backgroundTint="#F2F2F7"
+            android:src="@drawable/ic_arrow_send"
+            app:tint="@color/text_black" />
 
-        <TextView
-            android:id="@+id/tvTxDate"
-            android:layout_width="wrap_content"
+        <!-- 2. Profile Picture (Initial) -->
+        <FrameLayout
+            android:id="@+id/layoutProfileContainer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp">
+            <include layout="@layout/layout_profile_initial" />
+        </FrameLayout>
+
+        <!-- 3. Details -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Date"
-            android:textColor="@color/text_gray"
-            android:textSize="13sp"/>
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tvTxName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/tvTxAmount"
+                    android:text="Name"
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
+
+                <TextView
+                    android:id="@+id/tvTxAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="16dp"
+                    android:layout_alignBaseline="@id/tvTxName"
+                    android:text="₪0.00"
+                    android:textColor="@color/text_black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvTxDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Date"
+                android:textColor="@color/text_gray"
+                android:textSize="13sp" />
+
+        </LinearLayout>
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvTxAmount"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/layoutRequestActions"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="₪0.00"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginEnd="16dp"/>
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/btnDecline"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Decline"
+            android:gravity="center"
+            android:textColor="@color/text_black"
+            android:background="@drawable/bg_filter_chip_inactive"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/btnAccept"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Accept"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:background="@drawable/bg_filter_chip_active"/>
+    </LinearLayout>
 
 </LinearLayout>
