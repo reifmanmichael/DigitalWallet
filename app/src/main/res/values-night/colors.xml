@@ -1,0 +1,27 @@
+<resources>
+    <!-- Dark Mode Palette: Refined Dark Grays -->
+    <color name="background_off_white">#121212</color>
+    <color name="background_white">#1C1C1E</color>
+    <color name="white_card">#1C1C1E</color>
+    <color name="white">#FFFFFF</color>
+    <color name="input_bg">#2C2C2E</color>
+    
+    <!-- Text Colors -->
+    <color name="text_black">#E5E5EA</color>
+    <color name="text_gray">#8E8E93</color>
+    <color name="text_light">#FFFFFF</color>
+    
+    <color name="amount_text">#D1D1D6</color>
+    
+    <!-- Transaction Icon Colors - Dark Mode -->
+    <!-- Keeping them light but slightly more saturated for contrast against dark bg -->
+    <color name="bg_tx_sent">#3D1A1A</color> <!-- Darker muted red -->
+    <color name="bg_tx_received">#1A3D1A</color> <!-- Darker muted green -->
+    <color name="tx_arrow_color">#FFFFFF</color> <!-- White arrows for high contrast -->
+    
+    <color name="input_underline">#3A3A3C</color>
+    <color name="separator">#2C2C2E</color>
+
+    <color name="btn_black_active">#FFFFFF</color>
+    <color name="btn_black_inactive">#3A3A3C</color>
+</resources>

@@ -10,10 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -92,7 +94,7 @@ public class HistoryActivity extends AppCompatActivity {
             btn.setTextColor(Color.WHITE);
         } else {
             btn.setBackgroundResource(R.drawable.bg_filter_chip_inactive);
-            btn.setTextColor(Color.BLACK);
+            btn.setTextColor(ContextCompat.getColor(this, R.color.text_black));
         }
     }
 
@@ -149,12 +151,11 @@ public class HistoryActivity extends AppCompatActivity {
             holder.details.setText(dateStr + " • " + status);
 
             holder.amount.setText("₪" + String.format("%.2f", tx.amount));
-            holder.amount.setTextColor(Color.BLACK);
+            holder.amount.setTextColor(ContextCompat.getColor(HistoryActivity.this, R.color.amount_text));
 
             ProfileUtils.setProfileInitial(holder.profileContainer, tx.relatedUserName, tx.relatedUserColor);
 
-            // COLOR CODED ICON
-            holder.icon.setColorFilter(Color.BLACK);
+            holder.icon.setColorFilter(ContextCompat.getColor(HistoryActivity.this, R.color.text_black));
             if ("sent".equals(tx.type)) {
                 holder.icon.setImageResource(R.drawable.ic_arrow_send);
                 holder.icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFE5E5"))); // Light Red

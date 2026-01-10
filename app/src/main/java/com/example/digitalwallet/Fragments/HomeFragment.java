@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
@@ -144,19 +145,19 @@ public class HomeFragment extends Fragment {
         details.setText(dateStr + " • " + statusText);
 
         amount.setText("₪" + String.format("%.2f", tx.amount));
-        amount.setTextColor(Color.BLACK);
+        amount.setTextColor(ContextCompat.getColor(getContext(), R.color.amount_text));
 
         // Set Profile Initial
         ProfileUtils.setProfileInitial(profileContainer, tx.relatedUserName, tx.relatedUserColor);
 
-        // Icon logic with colorized backgrounds
-        icon.setColorFilter(Color.BLACK);
+        // --- ICON LOGIC WITH THEME-AWARE COLORS ---
+        icon.setColorFilter(ContextCompat.getColor(getContext(), R.color.tx_arrow_color));
         if ("sent".equals(tx.type)) {
             icon.setImageResource(R.drawable.ic_arrow_send);
-            icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFE5E5"))); // Light Red
+            icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.bg_tx_sent)));
         } else {
             icon.setImageResource(R.drawable.ic_arrow_request);
-            icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E5F9E5"))); // Light Green
+            icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.bg_tx_received)));
         }
 
         // REQUEST LOGIC
@@ -185,7 +186,7 @@ public class HomeFragment extends Fragment {
         recentContainer.addView(view);
         View line = new View(getContext());
         line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
-        line.setBackgroundColor(Color.parseColor("#F2F2F7"));
+        line.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.separator));
         recentContainer.addView(line);
     }
 
@@ -262,7 +263,7 @@ public class HomeFragment extends Fragment {
     private void showEmptyHistory() {
         TextView empty = new TextView(getContext());
         empty.setText("No recent transactions");
-        empty.setTextColor(Color.GRAY);
+        empty.setTextColor(ContextCompat.getColor(getContext(), R.color.text_gray));
         empty.setGravity(Gravity.CENTER);
         empty.setPadding(0, 80, 0, 80);
         recentContainer.addView(empty);
@@ -296,7 +297,7 @@ public class HomeFragment extends Fragment {
     private void showEmptyMostActive() {
         TextView empty = new TextView(getContext());
         empty.setText("No contacts yet");
-        empty.setTextColor(Color.GRAY);
+        empty.setTextColor(ContextCompat.getColor(getContext(), R.color.text_gray));
         empty.setGravity(Gravity.CENTER);
         empty.setPadding(0, 80, 0, 80);
         mostActiveContainer.addView(empty);

@@ -2,6 +2,7 @@ package com.example.digitalwallet.Utils;
 
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,6 +12,10 @@ import com.example.digitalwallet.R;
 public class ProfileUtils {
 
     public static void setProfileInitial(View container, String name, String colorHex) {
+        setProfileInitial(container, name, colorHex, -1);
+    }
+
+    public static void setProfileInitial(View container, String name, String colorHex, float textSizeSp) {
         ImageView bg = container.findViewById(R.id.imgProfileBg);
         TextView initial = container.findViewById(R.id.tvProfileInitial);
 
@@ -27,18 +32,19 @@ public class ProfileUtils {
             initial.setText("?");
         }
 
-        // 3. Contrast Logic (White vs Black)
-        // Calculating brightness (Luma)
+        // 3. Set Text Size if provided
+        if (textSizeSp > 0) {
+            initial.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp);
+        }
+
+        // 4. Contrast Logic (White vs Black)
         double darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255;
-        
-        // Special case: Orange background (#FF9500 or similar) should use WHITE initial
-        // We can detect "Orange" by high Red and Green, low Blue.
         boolean isOrange = Color.red(color) > 200 && Color.green(color) > 100 && Color.blue(color) < 50;
 
         if (darkness < 0.35 && !isOrange) {
-            initial.setTextColor(Color.BLACK); // Bright background
+            initial.setTextColor(Color.BLACK);
         } else {
-            initial.setTextColor(Color.WHITE); // Dark or Orange background
+            initial.setTextColor(Color.WHITE);
         }
     }
 }

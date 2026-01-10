@@ -7,21 +7,36 @@
     <color name="background_white">#FFFFFF</color>
     <color name="white_card">#FFFFFF</color>
     <color name="white">#FFFFFF</color>
-    <color name="input_bg">#F2F2F7</color> <color name="text_black">#000000</color>
+    <color name="input_bg">#F2F2F7</color>
+    <color name="text_black">#000000</color>
     <color name="text_gray">#8E8E93</color>
     <color name="text_light">#FFFFFF</color>
-    <color name="input_underline">#C7C7CC</color> <color name="error_red">#FF3B30</color>
+    
+    <color name="amount_text">#000000</color>
+    
+    <!-- Transaction Icon Colors - Light Mode -->
+    <color name="bg_tx_sent">#FFE5E5</color>
+    <color name="bg_tx_received">#E5F9E5</color>
+    <color name="tx_arrow_color">#333333</color>
+
+    <color name="input_underline">#C7C7CC</color>
+    <color name="error_red">#FF3B30</color>
     <color name="success_green">#34C759</color>
 
-    <color name="btn_send">#FF3B30</color> <color name="btn_request">#5AC8FA</color> <color name="btn_deposit">#CCEB95</color> <color name="separator">#E5E5EA</color>
+    <color name="btn_send">#FF3B30</color>
+    <color name="btn_request">#5AC8FA</color>
+    <color name="btn_deposit">#CCEB95</color>
+    <color name="separator">#E5E5EA</color>
 
     <color name="action_send">#FF3B30</color>
     <color name="action_request">#30B0C7</color>
     <color name="action_deposit">#34C759</color>
 
-    <color name="splash_bg">#30B0C7</color> <color name="splash_text">#001021</color>
+    <color name="splash_bg">#30B0C7</color>
+    <color name="splash_text">#001021</color>
 
-    <color name="card_light_teal">#E0F5F8</color> <color name="btn_continue_active">#007AFF</color>
+    <color name="card_light_teal">#E0F5F8</color>
+    <color name="btn_continue_active">#007AFF</color>
     <color name="btn_continue_inactive">#D1D1D6</color>
 
     <color name="btn_black_active">#000000</color>

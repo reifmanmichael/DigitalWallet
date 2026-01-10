@@ -20,7 +20,7 @@
             android:layout_height="32dp"
             android:padding="6dp"
             android:background="@drawable/bg_circle_shape"
-            android:backgroundTint="#F2F2F7"
+            android:backgroundTint="@color/background_off_white"
             android:src="@drawable/ic_arrow_send"
             app:tint="@color/text_black" />
 
@@ -66,7 +66,7 @@
                     android:layout_marginEnd="16dp"
                     android:layout_alignBaseline="@id/tvTxName"
                     android:text="₪0.00"
-                    android:textColor="@color/text_black"
+                    android:textColor="@color/amount_text"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -92,27 +92,32 @@
         android:paddingBottom="16dp"
         android:visibility="gone">
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDecline"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="Decline"
-            android:gravity="center"
+            android:textAllCaps="false"
             android:textColor="@color/text_black"
-            android:background="@drawable/bg_filter_chip_inactive"
+            app:backgroundTint="@color/background_off_white"
+            app:cornerRadius="24dp"
+            android:elevation="4dp"
             android:layout_marginEnd="8dp"/>
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAccept"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="Accept"
-            android:gravity="center"
+            android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textStyle="bold"
-            android:background="@drawable/bg_filter_chip_active"/>
+            app:backgroundTint="@color/btn_black_active"
+            app:cornerRadius="24dp"
+            android:elevation="4dp"/>
     </LinearLayout>
 
 </LinearLayout>

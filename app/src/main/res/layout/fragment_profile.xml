@@ -6,25 +6,27 @@
     android:orientation="vertical"
     android:gravity="center_horizontal"
     android:background="@color/background_off_white"
-    android:paddingTop="80dp">
+    android:paddingTop="60dp">
 
+    <!-- Smaller Profile Container -->
     <FrameLayout
         android:id="@+id/layoutProfileContainer"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginBottom="24dp">
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="20dp">
         <include layout="@layout/layout_profile_initial" />
     </FrameLayout>
 
+    <!-- Larger Display Name -->
     <TextView
         android:id="@+id/tvProfileName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Loading..."
-        android:textSize="28sp"
+        android:textSize="32sp"
         android:textStyle="bold"
         android:textColor="@color/text_black"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="4dp"/>
 
     <TextView
         android:id="@+id/tvProfileDetail"
@@ -33,22 +35,140 @@
         android:text="..."
         android:textSize="16sp"
         android:textColor="@color/text_gray"
-        android:layout_marginBottom="48dp"/>
+        android:layout_marginBottom="32dp"/>
 
-    <TextView
+    <!-- Settings Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="24dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0.5dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="@color/white_card">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Bank Accounts -->
+            <LinearLayout
+                android:id="@+id/btnBankAccounts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="20dp"
+                android:background="?selectableItemBackground">
+                
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_bank"
+                    app:tint="@color/text_black"/>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Bank accounts"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_black"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/background_off_white" android:layout_marginHorizontal="20dp"/>
+
+            <!-- Personal Details -->
+            <LinearLayout
+                android:id="@+id/btnPersonalDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="20dp"
+                android:background="?selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_edit"
+                    app:tint="@color/text_black"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Personal details"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_black"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/background_off_white" android:layout_marginHorizontal="20dp"/>
+
+            <!-- Display Mode -->
+            <LinearLayout
+                android:id="@+id/btnDisplayMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="20dp"
+                android:background="?selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_display_mode"
+                    app:tint="@color/text_black"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Display mode"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_black"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Unified Sign Out Button as a MaterialCardView for consistent shadow -->
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/btnSignOut"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:layout_marginHorizontal="24dp"
-        android:background="@drawable/bg_sharp_button"
-        android:backgroundTint="@color/white_card"
-        android:text="Sign Out"
-        android:gravity="center"
-        android:textColor="#FF3B30"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:elevation="2dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0.5dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="@color/white_card"
         android:clickable="true"
-        android:focusable="true"/>
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_logout"
+                app:tint="#FF3B30"
+                android:layout_marginEnd="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sign Out"
+                android:textColor="#FF3B30"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>
