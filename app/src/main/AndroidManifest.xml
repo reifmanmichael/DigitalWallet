@@ -12,6 +12,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DigitalWallet">
+        
+        <activity
+            android:name=".PocketTransferActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".CreateSavingsPlanActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".PocketDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CreatePocketNameActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".CreatePocketIconActivity"
+            android:exported="false" />
+            
         <activity
             android:name=".DisplayModeActivity"
             android:exported="false" />

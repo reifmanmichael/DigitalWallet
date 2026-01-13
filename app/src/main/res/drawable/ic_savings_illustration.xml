@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Piggy Body -->
+    <path
+        android:pathData="M20,45 Q20,30 35,30 L65,30 Q80,30 80,45 L80,75 Q80,85 65,85 L35,85 Q20,85 20,75 Z"
+        android:fillColor="#34C759"/>
+    <!-- Ear/Handle -->
+    <path
+        android:pathData="M40,30 L40,20 Q40,15 50,15 Q60,15 60,20 L60,30"
+        android:strokeWidth="4"
+        android:strokeColor="#28A745"
+        android:strokeLineCap="round"/>
+    <!-- Slot -->
+    <path
+        android:pathData="M40,45 L60,45"
+        android:strokeWidth="4"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"/>
+    <!-- Coin -->
+    <path
+        android:pathData="M50,55 A10,10 0 1,0 50,75 A10,10 0 1,0 50,55"
+        android:fillColor="#FFD700"/>
+    <!-- Coin Detail -->
+    <path
+        android:pathData="M50,60 L50,70 M45,65 L55,65"
+        android:strokeWidth="2"
+        android:strokeColor="#B8860B"/>
+</vector>

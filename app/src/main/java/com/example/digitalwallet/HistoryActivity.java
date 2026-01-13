@@ -91,7 +91,8 @@ public class HistoryActivity extends AppCompatActivity {
     private void updateBtnVisual(TextView btn, boolean isActive) {
         if (isActive) {
             btn.setBackgroundResource(R.drawable.bg_filter_chip_active);
-            btn.setTextColor(Color.WHITE);
+            // Fix: Use theme-aware color for active text (White in light mode, Dark in dark mode)
+            btn.setTextColor(ContextCompat.getColor(this, R.color.white_card));
         } else {
             btn.setBackgroundResource(R.drawable.bg_filter_chip_inactive);
             btn.setTextColor(ContextCompat.getColor(this, R.color.text_black));
@@ -136,7 +137,19 @@ public class HistoryActivity extends AppCompatActivity {
 
         @NonNull @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_activity, parent, false));
+            LinearLayout container = new LinearLayout(parent.getContext());
+            container.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            container.setOrientation(LinearLayout.VERTICAL);
+            
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_activity, container, false);
+            container.addView(itemView);
+            
+            View separator = new View(parent.getContext());
+            separator.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+            separator.setBackgroundColor(ContextCompat.getColor(parent.getContext(), R.color.separator));
+            container.addView(separator);
+            
+            return new ViewHolder(container, itemView);
         }
 
         @Override
@@ -155,13 +168,13 @@ public class HistoryActivity extends AppCompatActivity {
 
             ProfileUtils.setProfileInitial(holder.profileContainer, tx.relatedUserName, tx.relatedUserColor);
 
-            holder.icon.setColorFilter(ContextCompat.getColor(HistoryActivity.this, R.color.text_black));
+            holder.icon.setColorFilter(ContextCompat.getColor(HistoryActivity.this, R.color.tx_arrow_color));
             if ("sent".equals(tx.type)) {
                 holder.icon.setImageResource(R.drawable.ic_arrow_send);
-                holder.icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFE5E5"))); // Light Red
+                holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_sent)));
             } else {
                 holder.icon.setImageResource(R.drawable.ic_arrow_request);
-                holder.icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E5F9E5"))); // Light Green
+                holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_received)));
             }
         }
 
@@ -171,8 +184,8 @@ public class HistoryActivity extends AppCompatActivity {
             TextView name, details, amount;
             View profileContainer;
             ImageView icon;
-            ViewHolder(View v) {
-                super(v);
+            ViewHolder(View container, View v) {
+                super(container);
                 name = v.findViewById(R.id.tvTxName);
                 details = v.findViewById(R.id.tvTxDate);
                 amount = v.findViewById(R.id.tvTxAmount);

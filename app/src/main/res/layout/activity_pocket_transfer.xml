@@ -13,15 +13,16 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
+        android:layout_marginTop="60dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
+        <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_arrow_send"
-            android:rotation="225"
+            android:src="@drawable/ic_arrow_back"
             app:tint="@color/text_black"
+            android:background="?selectableItemBackgroundBorderless"
             android:padding="4dp"/>
 
         <LinearLayout
@@ -32,17 +33,18 @@
             android:gravity="center">
 
             <TextView
+                android:id="@+id/tvTransferType"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Transfer"
+                android:text="Deposit"
                 android:textSize="14sp"
                 android:textColor="@color/text_gray"/>
 
             <TextView
-                android:id="@+id/tvRecipientName"
+                android:id="@+id/tvPocketName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Recipient"
+                android:text="Pocket Name"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_black"/>
@@ -54,7 +56,8 @@
             android:layout_height="32dp"
             android:src="@drawable/ic_close"
             app:tint="@color/text_black"
-            android:padding="4dp"/>
+            android:padding="4dp"
+            android:background="?selectableItemBackgroundBorderless"/>
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -64,7 +67,7 @@
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp"
-        app:cardBackgroundColor="@color/card_light_teal"
+        app:cardBackgroundColor="@color/pocket_form_card_bg"
         app:layout_constraintTop_toBottomOf="@id/headerContainer">
 
         <LinearLayout
@@ -74,12 +77,13 @@
             android:padding="24dp">
 
             <TextView
+                android:id="@+id/tvAmountLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="How much?"
                 android:textSize="36sp"
                 android:textStyle="normal"
-                android:textColor="@color/text_black"
+                android:textColor="#000000"
                 android:layout_marginBottom="32dp"/>
 
             <LinearLayout
@@ -93,7 +97,7 @@
                     android:text="₪"
                     android:textSize="36sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_black"
+                    android:textColor="#000000"
                     android:layout_marginEnd="8dp"
                     android:layout_marginBottom="12dp"/>
                 <EditText
@@ -102,8 +106,8 @@
                     android:layout_height="wrap_content"
                     android:background="@null"
                     android:hint="0"
-                    android:textColorHint="@color/text_gray"
-                    android:textColor="@color/text_black"
+                    android:textColorHint="#666666"
+                    android:textColor="#000000"
                     android:textSize="64sp"
                     android:textStyle="bold"
                     android:inputType="numberDecimal"
@@ -113,7 +117,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:background="@color/text_black"
+                android:background="#000000"
                 android:layout_marginTop="4dp"/>
 
         </LinearLayout>
@@ -130,7 +134,7 @@
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
         app:cardBackgroundColor="@color/white_card"
-        app:layout_constraintBottom_toTopOf="@id/btnContinue">
+        app:layout_constraintBottom_toTopOf="@id/btnConfirm">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -139,6 +143,7 @@
             android:padding="16dp">
 
             <TextView
+                android:id="@+id/tvErrorTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Exceeded balance!"
@@ -147,6 +152,7 @@
                 android:textSize="16sp"/>
 
             <TextView
+                android:id="@+id/tvErrorDetail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="You cannot type more than what you have in your current balance."
@@ -157,14 +163,14 @@
     </com.google.android.material.card.MaterialCardView>
 
     <TextView
-        android:id="@+id/btnContinue"
+        android:id="@+id/btnConfirm"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="40dp"
         android:background="@drawable/bg_sharp_button"
         android:backgroundTint="@color/btn_black_inactive"
-        android:text="Continue"
+        android:text="Confirm"
         android:gravity="center"
         android:textColor="@color/white_card"
         android:textSize="18sp"

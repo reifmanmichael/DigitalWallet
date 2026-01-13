@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_sharp_button"
+    android:backgroundTint="@color/white_card">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Closed pockets"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_black"
+        android:layout_marginBottom="24dp"/>
+
+    <LinearLayout
+        android:id="@+id/closedPocketsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <!-- Minimal items will be added here dynamically -->
+    </LinearLayout>
+
+</LinearLayout>

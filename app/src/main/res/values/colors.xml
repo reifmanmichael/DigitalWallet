@@ -3,7 +3,8 @@
     <color name="primary_dark">#0051A8</color>
     <color name="accent_yellow">#FFD32A</color>
 
-    <color name="background_off_white">#F2F2F7</color>
+    <!-- Slightly deeper light gray for better card contrast -->
+    <color name="background_off_white">#F2F2F2</color>
     <color name="background_white">#FFFFFF</color>
     <color name="white_card">#FFFFFF</color>
     <color name="white">#FFFFFF</color>
@@ -41,4 +42,7 @@
 
     <color name="btn_black_active">#000000</color>
     <color name="btn_black_inactive">#D1D1D6</color>
+
+    <color name="pocket_savings_tint">#FFFDE7</color>
+    <color name="pocket_form_card_bg">#FFF9C4</color>
 </resources>

@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class DisplayModeActivity extends AppCompatActivity {
 
@@ -28,7 +29,11 @@ public class DisplayModeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_mode);
 
-        prefs = getSharedPreferences("theme_prefs", MODE_PRIVATE);
+        // Use User-Specific Preferences
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? 
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : "default";
+        prefs = getSharedPreferences("theme_prefs_" + uid, MODE_PRIVATE);
+        
         boolean isDarkMode = prefs.getBoolean("dark_mode", false);
 
         cardLight = findViewById(R.id.cardLight);
@@ -36,6 +41,7 @@ public class DisplayModeActivity extends AppCompatActivity {
         radioLight = findViewById(R.id.radioLight);
         radioDark = findViewById(R.id.radioDark);
 
+        // Force UI update from saved state
         updateUI(isDarkMode);
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
@@ -59,10 +65,10 @@ public class DisplayModeActivity extends AppCompatActivity {
         root.addView(overlay);
         mSnapshot = null;
 
-        // Transition made faster (400ms instead of 600ms)
+        // Transition made even faster (300ms) for a snappier feel
         overlay.animate()
                 .alpha(0f)
-                .setDuration(400)
+                .setDuration(300)
                 .withEndAction(() -> root.removeView(overlay))
                 .start();
     }
@@ -71,13 +77,20 @@ public class DisplayModeActivity extends AppCompatActivity {
         boolean currentMode = prefs.getBoolean("dark_mode", false);
         if (currentMode == darkMode) return;
 
+        // 1. Capture current screen state for the fade transition
         View root = findViewById(android.R.id.content);
-        mSnapshot = Bitmap.createBitmap(root.getWidth(), root.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(mSnapshot);
-        root.draw(canvas);
+        try {
+            mSnapshot = Bitmap.createBitmap(root.getWidth(), root.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(mSnapshot);
+            root.draw(canvas);
+        } catch (Exception e) {
+            mSnapshot = null;
+        }
 
+        // 2. Save Preference
         prefs.edit().putBoolean("dark_mode", darkMode).apply();
 
+        // 3. Switch theme
         if (darkMode) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         } else {
@@ -88,6 +101,7 @@ public class DisplayModeActivity extends AppCompatActivity {
     }
 
     private void updateUI(boolean isDarkMode) {
+        // Explicitly set both to ensure they don't conflict
         radioLight.setChecked(!isDarkMode);
         radioDark.setChecked(isDarkMode);
 

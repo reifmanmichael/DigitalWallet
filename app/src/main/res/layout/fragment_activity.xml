@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,123 +10,232 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="24dp"
+        android:paddingTop="180dp"
+        android:paddingBottom="100dp"
+        android:clipToPadding="false">
+
+        <TextView
+            android:layout_marginTop="25dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Activity"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_black"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Flow"
-            android:textSize="24sp"
-            android:textColor="@color/text_black"
-            android:layout_gravity="center"
-            android:layout_marginBottom="24dp"/>
+            android:text="Tools designed to allow easy management over your financial activity"
+            android:textSize="14sp"
+            android:textColor="@color/text_gray"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="40dp"/>
 
-        <androidx.cardview.widget.CardView
+        <!-- AI Insights Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0.5dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/white_card"
+            android:layout_marginBottom="32dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_edit"
+                        app:tint="@color/primary_blue"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="AI Insights"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_black"
+                        android:layout_marginStart="12dp"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvAiInsights"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Analyzing your transaction patterns..."
+                    android:textSize="15sp"
+                    android:textColor="@color/text_black"
+                    android:lineSpacingExtra="6dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Time Range Toggle -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="20dp"
+            app:singleSelection="true"
+            app:checkedButton="@+id/btnWeek">
+
+            <Button
+                android:id="@+id/btnDay"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Day"
+                android:textSize="12sp"
+                android:paddingHorizontal="16dp"/>
+
+            <Button
+                android:id="@+id/btnWeek"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Week"
+                android:textSize="12sp"
+                android:paddingHorizontal="16dp"/>
+
+            <Button
+                android:id="@+id/btnYear"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Year"
+                android:textSize="12sp"
+                android:paddingHorizontal="16dp"/>
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- Chart Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="320dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/white_card">
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0.5dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/white_card"
+            android:layout_marginBottom="40dp">
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/lineChart"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="16dp"/>
-        </androidx.cardview.widget.CardView>
+                android:layout_margin="12dp"/>
+        </com.google.android.material.card.MaterialCardView>
 
+        <!-- Watchlist Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Real-Time Exchange (ILS Base)"
-            android:textSize="14sp"
-            android:textColor="@color/text_gray"
-            android:layout_marginTop="32dp"
+            android:text="Currency Watchlist"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_black"
             android:layout_marginBottom="16dp"/>
 
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_rounded_button"
-            android:backgroundTint="@color/white_card"
-            android:padding="8dp">
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0.5dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/white_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="0dp"
+                <!-- USD -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🇺🇸 USD"
-                    android:textColor="@color/text_black"
-                    android:textSize="16sp"/>
+                    android:padding="24dp"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="USD / ILS"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_black"/>
+                    <TextView
+                        android:id="@+id/rateUsd"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₪ --"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_black"/>
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/rateUsd"
-                    android:layout_width="wrap_content"
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/separator" android:layout_marginHorizontal="24dp"/>
+
+                <!-- EUR -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="..."
-                    android:textColor="@color/text_black"/>
+                    android:padding="24dp"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="EUR / ILS"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_black"/>
+                    <TextView
+                        android:id="@+id/rateEur"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₪ --"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_black"/>
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/separator" android:layout_marginHorizontal="24dp"/>
+
+                <!-- GBP -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="24dp"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="GBP / ILS"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_black"/>
+                    <TextView
+                        android:id="@+id/rateGbp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₪ --"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_black"/>
+                </LinearLayout>
+
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#F2F2F7"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🇪🇺 EUR"
-                    android:textColor="@color/text_black"
-                    android:textSize="16sp"/>
-
-                <TextView
-                    android:id="@+id/rateEur"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="..."
-                    android:textColor="@color/text_black"/>
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#F2F2F7"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🇬🇧 GBP"
-                    android:textColor="@color/text_black"
-                    android:textSize="16sp"/>
-
-                <TextView
-                    android:id="@+id/rateGbp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="..."
-                    android:textColor="@color/text_black"/>
-            </LinearLayout>
-        </LinearLayout>
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

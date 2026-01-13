@@ -5,102 +5,236 @@
     android:layout_height="match_parent"
     android:background="@color/background_off_white">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="24dp">
-
-        <TextView
-            android:text="Your Pockets"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_black"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:text="The easiest way to organize money."
-            android:textSize="16sp"
-            android:textColor="@color/text_gray"
-            android:layout_marginBottom="24dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+        android:fillViewport="true">
 
         <LinearLayout
-            android:id="@+id/emptyStateContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:padding="20dp"
+            android:paddingTop="180dp"
+            android:paddingBottom="100dp"
+            android:clipToPadding="false">
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardCreateGeneral"
+            <!-- Header with Plus -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tvHeaderTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Your pockets"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_black"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"/>
+
+                <ImageView
+                    android:id="@+id/btnHeaderAdd"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_plus_deposit"
+                    app:tint="@color/text_black"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:padding="4dp"
+                    android:background="?selectableItemBackgroundBorderless"/>
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="The easiest way to organise money"
+                android:textSize="16sp"
+                android:textColor="@color/text_gray"
+                android:layout_marginBottom="32dp"/>
+
+            <!-- List of existing pockets -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerPockets"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone"/>
+
+            <!-- "Want another pocket?" text -->
+            <TextView
+                android:id="@+id/tvWantAnother"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Want another pocket?"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_black"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"/>
+
+            <!-- All-purpose Pocket Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAllPurpose"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0.5dp"
+                app:strokeWidth="0dp"
                 app:cardBackgroundColor="@color/white_card"
                 android:layout_marginBottom="16dp">
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="24dp"
-                    android:gravity="center_vertical">
-                    <ImageView android:src="@android:drawable/ic_menu_agenda" android:layout_width="32dp" android:layout_height="32dp" app:tint="@color/primary_blue"/>
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="16dp">
-                        <TextView android:layout_width="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+                    
+                    <!-- Large Illustration Container -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="120dp"
+                        android:layout_height="160dp"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/background_off_white"
+                        app:strokeWidth="0dp">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_all_purpose_illustration"
+                            android:padding="16dp"
+                            android:scaleType="fitCenter"/>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:gravity="start">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="General Pocket" android:textStyle="bold" android:textSize="18sp" android:textColor="@color/text_black"/>
-                        <TextView android:layout_width="wrap_content"
+                            android:text="All-purpose pocket"
+                            android:textStyle="bold"
+                            android:textSize="19sp"
+                            android:textColor="@color/text_black"/>
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:text="Like an extra balance you can transfer to and receive money in. For a business, a class fund, or anything else you need"
+                            android:textColor="@color/text_black"
+                            android:textSize="14sp"
+                            android:layout_marginTop="4dp"
+                            android:lineSpacingExtra="2dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="For daily expenses and sorting." android:textColor="@color/text_gray"/>
+                            android:text="Open pocket"
+                            android:textColor="@color/primary_blue"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:layout_marginTop="8dp"
+                            android:layout_margin="3dp"
+                            android:paddingVertical="4dp"/>
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardCreateSavings"
+            <!-- Savings Pocket Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSavings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/white_card">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0.5dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/white_card"
+                android:layout_marginBottom="32dp">
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="24dp"
-                    android:gravity="center_vertical">
-                    <ImageView android:src="@android:drawable/ic_lock_idle_lock" android:layout_width="32dp" android:layout_height="32dp" app:tint="@color/action_send"/>
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="16dp">
-                        <TextView android:layout_width="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+                    
+                    <!-- Large Illustration Container -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="120dp"
+                        android:layout_height="160dp"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/background_off_white"
+                        app:strokeWidth="0dp">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_savings_illustration"
+                            android:padding="16dp"
+                            android:scaleType="fitCenter"/>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:gravity="start">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Savings Pocket" android:textStyle="bold" android:textSize="18sp" android:textColor="@color/text_black"/>
-                        <TextView android:layout_width="wrap_content"
+                            android:text="Savings pocket"
+                            android:textStyle="bold"
+                            android:textSize="19sp"
+                            android:textColor="@color/text_black"/>
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:text="A place to set money aside and earn interest. For a trip, a smartphone, or anything else you've always wanted"
+                            android:textColor="@color/text_black"
+                            android:textSize="14sp"
+                            android:layout_marginTop="4dp"
+                            android:lineSpacingExtra="2dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Lock funds for a set goal." android:textColor="@color/text_gray"/>
+                            android:text="Choose savings type"
+                            android:textColor="@color/primary_blue"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:layout_marginTop="8dp"
+                            android:layout_margin="3dp"
+                            android:paddingVertical="4dp"/>
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/btnClosedPockets"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Closed pockets"
+                android:textColor="@color/primary_blue"
+                android:gravity="center"
+                android:padding="16dp"
+                android:textSize="16sp"
+                android:visibility="gone"/>
+
         </LinearLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerPockets"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"/>
-    </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddPocket"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
-        android:src="@drawable/ic_plus_deposit"
-        app:backgroundTint="@color/white_card"
-        app:tint="@color/text_black"
-        app:elevation="2dp"
-        app:borderWidth="0dp"/>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

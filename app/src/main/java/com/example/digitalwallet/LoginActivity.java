@@ -2,18 +2,19 @@ package com.example.digitalwallet;
 
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Property;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -27,13 +28,16 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Force Light Mode for Login/Register
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
         mAuth = FirebaseAuth.getInstance();
         if (mAuth.getCurrentUser() != null) {
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
+            applyUserThemeAndNavigate(mAuth.getCurrentUser());
+            return;
         }
 
         etInput = findViewById(R.id.etLoginInput);
@@ -65,10 +69,8 @@ public class LoginActivity extends AppCompatActivity {
         if (input.isEmpty() || pass.isEmpty()) return;
 
         if (input.contains("@")) {
-            // It's an email
             loginWithEmail(input, pass);
         } else {
-            // It's likely a phone number, look it up!
             loginWithPhoneLookup(input, pass);
         }
     }
@@ -81,7 +83,6 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
-                            // We found the user, get the email from the first child
                             for (DataSnapshot child : snapshot.getChildren()) {
                                 String email = child.child("email").getValue(String.class);
                                 if (email != null) {
@@ -103,11 +104,21 @@ public class LoginActivity extends AppCompatActivity {
     private void loginWithEmail(String email, String password) {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    startActivity(new Intent(this, MainActivity.class));
-                    finish();
+                    applyUserThemeAndNavigate(authResult.getUser());
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(LoginActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
+    }
+
+    private void applyUserThemeAndNavigate(FirebaseUser user) {
+        if (user != null) {
+            SharedPreferences prefs = getSharedPreferences("theme_prefs_" + user.getUid(), MODE_PRIVATE);
+            boolean isDarkMode = prefs.getBoolean("dark_mode", false);
+            AppCompatDelegate.setDefaultNightMode(isDarkMode ? 
+                    AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
+        }
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 }

@@ -1,6 +1,7 @@
 package com.example.digitalwallet;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.digitalwallet.Model.Transaction;
 import com.example.digitalwallet.Transfers.TransferAmountActivity;
@@ -118,6 +120,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
         TextView details = view.findViewById(R.id.tvTxDate);
         TextView amount = view.findViewById(R.id.tvTxAmount);
         View profileContainer = view.findViewById(R.id.layoutProfileContainer);
+        ImageView icon = view.findViewById(R.id.imgTxIcon);
 
         name.setText(tx.relatedUserName);
 
@@ -130,23 +133,33 @@ public class ContactDetailsActivity extends AppCompatActivity {
         details.setText(dateStr + " • " + status);
 
         amount.setText("₪" + String.format("%.2f", tx.amount));
-        amount.setTextColor(Color.BLACK);
+        amount.setTextColor(ContextCompat.getColor(this, R.color.amount_text));
 
         ProfileUtils.setProfileInitial(profileContainer, tx.relatedUserName, tx.relatedUserColor);
 
+        // --- UNIFIED ICON LOGIC ---
+        icon.setColorFilter(ContextCompat.getColor(this, R.color.tx_arrow_color));
+        if ("sent".equals(tx.type)) {
+            icon.setImageResource(R.drawable.ic_arrow_send);
+            icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.bg_tx_sent)));
+        } else {
+            icon.setImageResource(R.drawable.ic_arrow_request);
+            icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.bg_tx_received)));
+        }
+
         activityContainer.addView(view);
         
+        // --- THEME-AWARE SEPARATOR ---
         View line = new View(this);
         line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
-        line.setBackgroundColor(Color.parseColor("#F2F2F7"));
+        line.setBackgroundColor(ContextCompat.getColor(this, R.color.separator));
         activityContainer.addView(line);
     }
 
     private void showEmptyState() {
         TextView empty = new TextView(this);
         empty.setText("No transactions with " + contactName);
-        empty.setTextColor(Color.GRAY);
-        empty.setTextSize(14);
+        empty.setTextColor(ContextCompat.getColor(this, R.color.text_gray));
         empty.setGravity(android.view.Gravity.CENTER);
         empty.setPadding(0, 80, 0, 80);
         activityContainer.addView(empty);

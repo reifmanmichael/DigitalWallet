@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_sharp_button"
+    android:backgroundTint="@color/white_card">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="All set - your pocket is ready!"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_black"
+        android:layout_gravity="center"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time to put something in; a pocket without money is like a bath without bubbles"
+        android:textSize="16sp"
+        android:textColor="@color/text_gray"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"/>
+
+    <TextView
+        android:id="@+id/btnAddMoney"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@drawable/bg_sharp_button"
+        android:backgroundTint="@color/action_request"
+        android:text="Add money"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <TextView
+        android:id="@+id/btnViewPocket"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="View pocket"
+        android:gravity="center"
+        android:textColor="@color/primary_blue"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:clickable="true"
+        android:focusable="true"/>
+
+</LinearLayout>
