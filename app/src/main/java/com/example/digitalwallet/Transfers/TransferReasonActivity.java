@@ -102,7 +102,12 @@ public class TransferReasonActivity extends AppCompatActivity {
                     return;
                 }
 
-                // According to the user, BOTH Send and Request should initiate requests (pending)
+                if (!"request".equals(mode) && me.balance < amount) {
+                    Toast.makeText(TransferReasonActivity.this, "Insufficient balance", Toast.LENGTH_SHORT).show();
+                    resetButton();
+                    return;
+                }
+
                 performPendingTransaction(me, recipient, amount, mySnap, recSnap);
             }
             @Override public void onCancelled(@NonNull DatabaseError error) { resetButton(); }
@@ -131,6 +136,9 @@ public class TransferReasonActivity extends AppCompatActivity {
             myTx = new Transaction(txId, "sent", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid);
             // They (Target) are receiving -> They are receiving
             recTx = new Transaction(txId, "received", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid);
+            
+            // Deduct money immediately for "Send" (Putting it in Limbo)
+            updates.put("Users/" + myUid + "/balance", me.balance - amount);
         }
 
         updates.put("Users/" + myUid + "/transactions/" + txId, myTx);
@@ -155,7 +163,7 @@ public class TransferReasonActivity extends AppCompatActivity {
 
         mDb.updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                String msg = "request".equals(mode) ? "Request Sent!" : "Transaction Initiated!";
+                String msg = "request".equals(mode) ? "Request Sent!" : "Money sent to limbo! Waiting for acceptance.";
                 Toast.makeText(TransferReasonActivity.this, msg, Toast.LENGTH_LONG).show();
                 navigateHome();
             } else {

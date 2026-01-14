@@ -147,10 +147,8 @@ public class HomeFragment extends Fragment {
         amount.setText("₪" + String.format("%.2f", tx.amount));
         amount.setTextColor(ContextCompat.getColor(getContext(), R.color.amount_text));
 
-        // Set Profile Initial
         ProfileUtils.setProfileInitial(profileContainer, tx.relatedUserName, tx.relatedUserColor);
 
-        // --- ICON LOGIC WITH THEME-AWARE COLORS ---
         icon.setColorFilter(ContextCompat.getColor(getContext(), R.color.tx_arrow_color));
         if ("sent".equals(tx.type)) {
             icon.setImageResource(R.drawable.ic_arrow_send);
@@ -160,26 +158,34 @@ public class HomeFragment extends Fragment {
             icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.bg_tx_received)));
         }
 
-        // REQUEST LOGIC
+        // Action Logic for Pending Transactions
         if ("pending".equals(tx.status)) {
             if (!myUid.equals(tx.initiatorUid)) {
+                // I am the receiver of a Send OR the target of a Request
                 layoutActions.setVisibility(View.VISIBLE);
                 
                 if ("sent".equals(tx.type)) {
+                    // This means I was REQUESTED money from. I must pay.
                     boolean canAccept = myCurrentBalance >= tx.amount;
                     if (canAccept) {
                         btnAccept.setAlpha(1.0f);
                         btnAccept.setOnClickListener(v -> handleRequest(tx, true));
                     } else {
                         btnAccept.setAlpha(0.3f);
-                        btnAccept.setOnClickListener(v -> Toast.makeText(getContext(), "Insufficient funds to accept", Toast.LENGTH_SHORT).show());
+                        btnAccept.setOnClickListener(v -> Toast.makeText(getContext(), "Insufficient funds to pay", Toast.LENGTH_SHORT).show());
                     }
+                    btnAccept.setText("Pay");
                 } else {
+                    // This means I RECEIVED money (it's in limbo). I must accept.
                     btnAccept.setAlpha(1.0f);
                     btnAccept.setOnClickListener(v -> handleRequest(tx, true));
+                    btnAccept.setText("Accept");
                 }
 
                 btnDecline.setOnClickListener(v -> handleRequest(tx, false));
+            } else {
+                // I am the initiator. I am waiting for the other person.
+                details.setText(dateStr + " • Waiting...");
             }
         }
 
@@ -194,14 +200,20 @@ public class HomeFragment extends Fragment {
         Map<String, Object> updates = new HashMap<>();
         String status = accept ? "completed" : "declined";
 
-        if (accept) {
-            mRootRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot root) {
-                    double myBal = Double.parseDouble(root.child("Users").child(myUid).child("balance").getValue().toString());
-                    double otherBal = Double.parseDouble(root.child("Users").child(tx.relatedUserUid).child("balance").getValue().toString());
+        mRootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot root) {
+                DataSnapshot myUserSnap = root.child("Users").child(myUid);
+                DataSnapshot otherUserSnap = root.child("Users").child(tx.relatedUserUid);
+                
+                if (!myUserSnap.exists() || !otherUserSnap.exists()) return;
 
+                double myBal = Double.parseDouble(myUserSnap.child("balance").getValue().toString());
+                double otherBal = Double.parseDouble(otherUserSnap.child("balance").getValue().toString());
+
+                if (accept) {
                     if ("sent".equals(tx.type)) {
+                        // I was requested money. I must pay now.
                         if (myBal < tx.amount) {
                             Toast.makeText(getContext(), "Insufficient funds", Toast.LENGTH_SHORT).show();
                             return;
@@ -209,20 +221,21 @@ public class HomeFragment extends Fragment {
                         updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
                         updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
                     } else {
-                        if (otherBal < tx.amount) {
-                            Toast.makeText(getContext(), "Other user has insufficient funds", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
+                        // I received money from limbo. Sender already paid.
                         updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
-                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal - tx.amount);
                     }
-                    finalizeRequestUpdate(tx, status, updates);
+                } else {
+                    // Declined
+                    if ("received".equals(tx.type)) {
+                        // I declined money sent to me. Return it to the sender.
+                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                    }
+                    // If it was a request and I decline, no balance changes needed.
                 }
-                @Override public void onCancelled(@NonNull DatabaseError error) {}
-            });
-        } else {
-            finalizeRequestUpdate(tx, status, updates);
-        }
+                finalizeRequestUpdate(tx, status, updates);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void finalizeRequestUpdate(Transaction tx, String status, Map<String, Object> updates) {
