@@ -1,8 +1,12 @@
 package com.example.digitalwallet;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -11,14 +15,25 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.digitalwallet.Model.Pocket;
+import com.example.digitalwallet.Model.Transaction;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class PocketDetailsActivity extends AppCompatActivity {
 
@@ -27,9 +42,12 @@ public class PocketDetailsActivity extends AppCompatActivity {
     private Pocket currentPocket;
     private double mainBalance = 0;
 
-    private TextView tvName, tvBalance;
+    private TextView tvName, tvBalance, tvNoActivity;
     private ImageView imgIcon;
     private View btnWithdraw, btnDeposit, btnMore;
+    private RecyclerView recyclerActivity;
+    private ActivityAdapter activityAdapter;
+    private final List<Transaction> activityList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,10 +66,16 @@ public class PocketDetailsActivity extends AppCompatActivity {
         tvName = findViewById(R.id.tvPocketDetailName);
         tvBalance = findViewById(R.id.tvPocketDetailBalance);
         imgIcon = findViewById(R.id.imgPocketDetailIcon);
+        tvNoActivity = findViewById(R.id.tvNoActivity);
         
         btnWithdraw = findViewById(R.id.btnWithdraw);
         btnDeposit = findViewById(R.id.btnDeposit);
         btnMore = findViewById(R.id.btnMore);
+
+        recyclerActivity = findViewById(R.id.recyclerPocketActivity);
+        recyclerActivity.setLayoutManager(new LinearLayoutManager(this));
+        activityAdapter = new ActivityAdapter(activityList);
+        recyclerActivity.setAdapter(activityAdapter);
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
@@ -97,10 +121,31 @@ public class PocketDetailsActivity extends AppCompatActivity {
 
                     // --- HANDLE CLOSED STATE ---
                     updateUIForClosedState(currentPocket.isClosed);
+
+                    // --- LOAD ACTIVITY ---
+                    loadActivity(snapshot.child("activity"));
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    private void loadActivity(DataSnapshot activitySnapshot) {
+        activityList.clear();
+        for (DataSnapshot ds : activitySnapshot.getChildren()) {
+            Transaction tx = ds.getValue(Transaction.class);
+            if (tx != null) activityList.add(tx);
+        }
+        Collections.sort(activityList, (a, b) -> Long.compare(b.timestamp, a.timestamp));
+        
+        if (activityList.isEmpty()) {
+            tvNoActivity.setVisibility(View.VISIBLE);
+            recyclerActivity.setVisibility(View.GONE);
+        } else {
+            tvNoActivity.setVisibility(View.GONE);
+            recyclerActivity.setVisibility(View.VISIBLE);
+            activityAdapter.notifyDataSetChanged();
+        }
     }
 
     private void updateUIForClosedState(boolean isClosed) {
@@ -167,5 +212,59 @@ public class PocketDetailsActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.ViewHolder> {
+        List<Transaction> list;
+        ActivityAdapter(List<Transaction> list) { this.list = list; }
+
+        @NonNull @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_activity, parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Transaction tx = list.get(position);
+            
+            holder.name.setText("deposit".equals(tx.type) ? "Deposit to pocket" : "Withdraw from pocket");
+            holder.date.setText(new SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(new Date(tx.timestamp)));
+            holder.amount.setText(String.format("₪%.2f", tx.amount));
+            
+            // Amount color: Always black/white (amount_text)
+            holder.amount.setTextColor(ContextCompat.getColor(PocketDetailsActivity.this, R.color.amount_text));
+            
+            // Icon Logic: Consistent with HomeFragment (received vs sent)
+            holder.icon.setColorFilter(ContextCompat.getColor(PocketDetailsActivity.this, R.color.tx_arrow_color));
+            if ("withdraw".equals(tx.type)) {
+                // Withdrawal from pocket = Money OUT (Sent)
+                holder.icon.setImageResource(R.drawable.ic_arrow_send);
+                holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(PocketDetailsActivity.this, R.color.bg_tx_sent)));
+                holder.icon.setRotation(0); // Ensure no rotation if ic_arrow_send is already correct
+            } else {
+                // Deposit to pocket = Money IN (Received)
+                holder.icon.setImageResource(R.drawable.ic_arrow_request);
+                holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(PocketDetailsActivity.this, R.color.bg_tx_received)));
+                holder.icon.setRotation(0);
+            }
+
+            holder.profileContainer.setVisibility(View.GONE);
+        }
+
+        @Override public int getItemCount() { return list.size(); }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            TextView name, date, amount;
+            ImageView icon;
+            View profileContainer;
+            ViewHolder(View v) {
+                super(v);
+                name = v.findViewById(R.id.tvTxName);
+                date = v.findViewById(R.id.tvTxDate);
+                amount = v.findViewById(R.id.tvTxAmount);
+                icon = v.findViewById(R.id.imgTxIcon);
+                profileContainer = v.findViewById(R.id.layoutProfileContainer);
+            }
+        }
     }
 }

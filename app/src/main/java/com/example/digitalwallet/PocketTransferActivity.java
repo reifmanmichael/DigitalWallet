@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.digitalwallet.Model.Pocket;
+import com.example.digitalwallet.Model.Transaction;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -78,10 +79,13 @@ public class PocketTransferActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    mainBalance = Double.parseDouble(snapshot.child("balance").getValue().toString());
+                    Object balObj = snapshot.child("balance").getValue();
+                    mainBalance = balObj != null ? Double.parseDouble(balObj.toString()) : 0.0;
+                    
                     DataSnapshot pSnap = snapshot.child("pockets").child(pocketId);
                     if (pSnap.exists()) {
-                        currentPocketAmount = Double.parseDouble(pSnap.child("amount").getValue().toString());
+                        Object amtObj = pSnap.child("amount").getValue();
+                        currentPocketAmount = amtObj != null ? Double.parseDouble(amtObj.toString()) : 0.0;
                     }
                 }
             }
@@ -155,6 +159,14 @@ public class PocketTransferActivity extends AppCompatActivity {
         double amount = Double.parseDouble(etAmount.getText().toString());
         Map<String, Object> updates = new HashMap<>();
 
+        String txId = mUserRef.child("pockets").child(pocketId).child("activity").push().getKey();
+        Transaction tx = new Transaction();
+        tx.id = txId;
+        tx.amount = amount;
+        tx.timestamp = System.currentTimeMillis();
+        tx.status = "completed";
+        tx.type = mode; // "deposit" or "withdraw"
+
         if ("deposit".equals(mode)) {
             updates.put("balance", mainBalance - amount);
             updates.put("pockets/" + pocketId + "/amount", currentPocketAmount + amount);
@@ -162,6 +174,8 @@ public class PocketTransferActivity extends AppCompatActivity {
             updates.put("balance", mainBalance + amount);
             updates.put("pockets/" + pocketId + "/amount", currentPocketAmount - amount);
         }
+        
+        updates.put("pockets/" + pocketId + "/activity/" + txId, tx);
 
         mUserRef.updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
