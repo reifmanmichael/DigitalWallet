@@ -1,10 +1,10 @@
 <resources>
-    <!-- Dark Mode Palette: Refined Dark Grays -->
-    <color name="background_off_white">#121212</color>
-    <color name="background_white">#1C1C1E</color>
-    <color name="white_card">#1C1C1E</color>
+    <!-- Dark Mode Palette: Refined Dark Grays (Non-OLED Black for better depth) -->
+    <color name="background_off_white">#1C1C1E</color>
+    <color name="background_white">#2C2C2E</color>
+    <color name="white_card">#2C2C2E</color>
     <color name="white">#FFFFFF</color>
-    <color name="input_bg">#2C2C2E</color>
+    <color name="input_bg">#3A3A3C</color>
     
     <!-- Text Colors -->
     <color name="text_black">#E5E5EA</color>
@@ -18,17 +18,20 @@
     <color name="bg_tx_received">#1A3D1A</color>
     <color name="tx_arrow_color">#FFFFFF</color>
     
-    <color name="input_underline">#3A3A3C</color>
-    <color name="separator">#2C2C2E</color>
+    <color name="input_underline">#48484A</color>
+    <color name="separator">#3A3A3C</color>
 
     <color name="btn_black_active">#FFFFFF</color>
-    <color name="btn_black_inactive">#3A3A3C</color>
+    <color name="btn_black_inactive">#48484A</color>
 
     <!-- Specific for Form Cards in Dark Mode -->
     <color name="card_light_teal">#2C2C2E</color>
     <color name="form_header_text">#FFFFFF</color>
 
-    <color name="pocket_savings_tint">#2D2A1A</color>
-    <color name="pocket_form_card_bg">#2D2A1A</color> <!-- Dark muted yellow/gray for cards -->
-    <color name="pocket_illustration_bg">#1C1C1E</color>
+    <!-- Premium Fintech Gold for Dark Mode -->
+    <color name="pocket_savings_tint">#3D3400</color>
+    <color name="pocket_form_card_bg">#FFCC00</color> 
+    <color name="pocket_illustration_bg">#2C2C2E</color>
+    
+    <color name="text_on_pocket_card">#000000</color>
 </resources>

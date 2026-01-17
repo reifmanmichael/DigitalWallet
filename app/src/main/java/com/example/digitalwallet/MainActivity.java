@@ -10,6 +10,7 @@ import com.example.digitalwallet.Fragments.ActivityFragment;
 import com.example.digitalwallet.Fragments.HomeFragment;
 import com.example.digitalwallet.Fragments.PocketsFragment;
 import com.example.digitalwallet.Fragments.ProfileFragment;
+import com.example.digitalwallet.Utils.CustomPopup;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static String pendingSuccessMessage = null;
     private int currentTabIndex = 0;
     private final Map<Integer, Integer> tabIndices = new HashMap<>();
     private BottomNavigationView bottomNav;
@@ -72,11 +74,19 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             if (getIntent().getBooleanExtra("show_pocket_success", false)) {
-                // Redirect back to the pockets fragment
                 loadFragment(R.id.nav_pockets);
             } else {
                 loadFragment(R.id.nav_home);
             }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (pendingSuccessMessage != null) {
+            CustomPopup.show(this, "Transaction Successful", pendingSuccessMessage);
+            pendingSuccessMessage = null;
         }
     }
 

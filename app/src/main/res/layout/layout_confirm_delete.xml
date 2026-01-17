@@ -4,36 +4,38 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp"
+    android:padding="32dp"
     android:background="@drawable/bg_sharp_button"
-    android:backgroundTint="#1C1C1E">
+    android:backgroundTint="@color/white_card">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="All set - your pocket is ready!"
-        android:textSize="22sp"
+        android:text="Delete Pocket"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/white"
+        android:textColor="@color/text_black"
         android:layout_gravity="center"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="12dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Time to put something in; a pocket without money is like a bath without bubbles"
-        android:textSize="16sp"
-        android:textColor="#8E8E93"
+        android:text="Are you sure? All funds will be returned to your main balance."
+        android:textSize="17sp"
+        android:textColor="@color/text_gray"
         android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_gravity="center"
         android:layout_marginBottom="32dp"/>
 
     <TextView
-        android:id="@+id/btnAddMoney"
+        android:id="@+id/btnConfirmDelete"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@drawable/bg_sharp_button"
-        android:backgroundTint="#30B0C7"
-        android:text="Add money"
+        android:backgroundTint="@color/error_red"
+        android:text="Delete"
         android:gravity="center"
         android:textColor="@color/white"
         android:textSize="18sp"
@@ -43,12 +45,12 @@
         android:focusable="true"/>
 
     <TextView
-        android:id="@+id/btnViewPocket"
+        android:id="@+id/btnCancelDelete"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="View pocket"
+        android:text="Cancel"
         android:gravity="center"
-        android:textColor="@color/primary_blue"
+        android:textColor="@color/text_gray"
         android:textSize="16sp"
         android:textStyle="bold"
         android:clickable="true"

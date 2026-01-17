@@ -4,52 +4,43 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp"
+    android:padding="32dp"
     android:background="@drawable/bg_sharp_button"
-    android:backgroundTint="#1C1C1E">
+    android:backgroundTint="@color/white_card">
 
     <TextView
+        android:id="@+id/tvPopupTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="All set - your pocket is ready!"
-        android:textSize="22sp"
+        android:text="Transaction Successful"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/white"
+        android:textColor="@color/text_black"
         android:layout_gravity="center"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="12dp"/>
 
     <TextView
+        android:id="@+id/tvPopupMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Time to put something in; a pocket without money is like a bath without bubbles"
-        android:textSize="16sp"
-        android:textColor="#8E8E93"
+        android:text="Action completed successfully."
+        android:textSize="17sp"
+        android:textColor="@color/text_gray"
         android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_gravity="center"
         android:layout_marginBottom="32dp"/>
 
     <TextView
-        android:id="@+id/btnAddMoney"
+        android:id="@+id/btnPopupOk"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@drawable/bg_sharp_button"
-        android:backgroundTint="#30B0C7"
-        android:text="Add money"
+        android:backgroundTint="@color/btn_black_active"
+        android:text="OK"
         android:gravity="center"
-        android:textColor="@color/white"
+        android:textColor="@color/white_card"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="12dp"
-        android:clickable="true"
-        android:focusable="true"/>
-
-    <TextView
-        android:id="@+id/btnViewPocket"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="View pocket"
-        android:gravity="center"
-        android:textColor="@color/primary_blue"
-        android:textSize="16sp"
         android:textStyle="bold"
         android:clickable="true"
         android:focusable="true"/>

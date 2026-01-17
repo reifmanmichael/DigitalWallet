@@ -40,14 +40,60 @@
                         android:src="@drawable/ic_all_purpose_illustration"/>
                 </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                    android:id="@+id/tvPocketDetailName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Pocket Name"
-                    android:textColor="@color/text_black"
-                    android:textSize="28sp"
-                    android:textStyle="bold"/>
+                <!-- Editable Name Section centered with ConstraintLayout -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageButton
+                        android:id="@+id/btnSaveName"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_check"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:visibility="gone"
+                        app:tint="@color/text_black"
+                        app:layout_constraintEnd_toStartOf="@+id/nameContainer"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginEnd="8dp"/>
+
+                    <FrameLayout
+                        android:id="@+id/nameContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent">
+
+                        <TextView
+                            android:id="@+id/tvPocketDetailName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pocket Name"
+                            android:textColor="@color/text_black"
+                            android:textSize="28sp"
+                            android:textStyle="bold"
+                            android:gravity="center"/>
+
+                        <EditText
+                            android:id="@+id/etPocketDetailName"
+                            android:layout_width="wrap_content"
+                            android:minWidth="120dp"
+                            android:layout_height="wrap_content"
+                            android:background="@null"
+                            android:hint="Name"
+                            android:textColor="@color/text_black"
+                            android:textSize="28sp"
+                            android:textStyle="bold"
+                            android:gravity="center"
+                            android:visibility="gone"
+                            android:maxLength="10"
+                            android:singleLine="true"
+                            android:imeOptions="actionDone"/>
+                    </FrameLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <TextView
                     android:id="@+id/tvPocketDetailBalance"
@@ -64,7 +110,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:paddingBottom="40dp">
 
                 <LinearLayout
@@ -75,6 +121,7 @@
                     android:gravity="center_horizontal"
                     android:layout_marginEnd="20dp">
                     <ImageButton
+                        android:id="@+id/ibWithdraw"
                         android:layout_width="64dp"
                         android:layout_height="64dp"
                         android:background="@drawable/bg_circle_shape"
@@ -102,6 +149,7 @@
                     android:gravity="center_horizontal"
                     android:layout_marginEnd="20dp">
                     <ImageButton
+                        android:id="@+id/ibDeposit"
                         android:layout_width="64dp"
                         android:layout_height="64dp"
                         android:background="@drawable/bg_circle_shape"
@@ -126,17 +174,80 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center_horizontal">
-                    <ImageButton
+                    
+                    <FrameLayout
                         android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:background="@drawable/bg_circle_shape"
-                        android:backgroundTint="#E5E5EA"
-                        android:src="@drawable/ic_more"
-                        android:padding="18dp"
-                        android:scaleType="fitCenter"
-                        android:clickable="false"
-                        android:focusable="false"/>
+                        android:layout_height="wrap_content">
+                        
+                        <!-- Menu Pill (Dynamic height) -->
+                        <LinearLayout
+                            android:id="@+id/layoutMoreExpanded"
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:orientation="vertical"
+                            android:gravity="center_horizontal"
+                            android:background="@drawable/bg_rounded_button"
+                            android:backgroundTint="@color/separator"
+                            android:padding="0dp">
+                            
+                            <!-- Lock Icon (Top) - Dots will morph into this -->
+                            <ImageButton
+                                android:id="@+id/btnActionLock"
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:background="?selectableItemBackgroundBorderless"
+                                android:src="@drawable/ic_lock"
+                                app:tint="@color/text_black"
+                                android:padding="20dp"
+                                android:scaleType="fitCenter"
+                                android:alpha="0"/>
+                                
+                            <ImageButton
+                                android:id="@+id/btnActionEdit"
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:background="?selectableItemBackgroundBorderless"
+                                android:src="@drawable/ic_edit"
+                                app:tint="@color/text_black"
+                                android:padding="20dp"
+                                android:scaleType="fitCenter"
+                                android:alpha="0"/>
+                                
+                            <FrameLayout
+                                android:id="@+id/btnActionDelete"
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:alpha="0">
+                                <View
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:layout_gravity="center"
+                                    android:background="@drawable/bg_circle_shape"
+                                    android:backgroundTint="#FFE5E5"/>
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_delete"
+                                    app:tint="@color/error_red"/>
+                            </FrameLayout>
+                        </LinearLayout>
+
+                        <!-- Morphing layer (The dots) -->
+                        <ImageButton
+                            android:id="@+id/ibMore"
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:background="@android:color/transparent"
+                            android:src="@drawable/ic_more"
+                            android:padding="18dp"
+                            android:scaleType="fitCenter"
+                            android:clickable="true"
+                            android:focusable="true"/>
+                    </FrameLayout>
+                    
                     <TextView
+                        android:id="@+id/tvMoreLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="More"
@@ -146,7 +257,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Pocket Activity Section (Optional) -->
+            <!-- Pocket Activity Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

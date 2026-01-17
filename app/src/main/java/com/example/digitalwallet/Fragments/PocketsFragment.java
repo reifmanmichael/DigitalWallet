@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.digitalwallet.CreatePocketNameActivity;
 import com.example.digitalwallet.Model.Pocket;
 import com.example.digitalwallet.PocketDetailsActivity;
+import com.example.digitalwallet.PocketTransferActivity;
 import com.example.digitalwallet.R;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
@@ -156,19 +157,29 @@ public class PocketsFragment extends Fragment {
     }
 
     private void showSuccessPopup() {
-        if (getContext() == null) return;
+        if (getContext() == null || activePockets.isEmpty()) return;
+        
+        // Get the most recently added pocket (last in the list)
+        Pocket latestPocket = activePockets.get(activePockets.size() - 1);
+        
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
         View view = getLayoutInflater().inflate(R.layout.layout_pocket_success_sheet, null);
         bottomSheetDialog.setContentView(view);
         
-        view.findViewById(R.id.btnAddMoney).setOnClickListener(v -> bottomSheetDialog.dismiss());
+        view.findViewById(R.id.btnAddMoney).setOnClickListener(v -> {
+            bottomSheetDialog.dismiss();
+            Intent intent = new Intent(getActivity(), PocketTransferActivity.class);
+            intent.putExtra("pocket_id", latestPocket.id);
+            intent.putExtra("pocket_name", latestPocket.name);
+            intent.putExtra("mode", "deposit");
+            startActivity(intent);
+        });
+        
         view.findViewById(R.id.btnViewPocket).setOnClickListener(v -> {
             bottomSheetDialog.dismiss();
-            if (!activePockets.isEmpty()) {
-                Intent intent = new Intent(getActivity(), PocketDetailsActivity.class);
-                intent.putExtra("pocket_id", activePockets.get(activePockets.size() - 1).id);
-                startActivity(intent);
-            }
+            Intent intent = new Intent(getActivity(), PocketDetailsActivity.class);
+            intent.putExtra("pocket_id", latestPocket.id);
+            startActivity(intent);
         });
         
         bottomSheetDialog.show();

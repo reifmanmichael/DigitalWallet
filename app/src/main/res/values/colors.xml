@@ -45,4 +45,6 @@
 
     <color name="pocket_savings_tint">#FFFDE7</color>
     <color name="pocket_form_card_bg">#FFF9C4</color>
+    
+    <color name="text_on_pocket_card">#000000</color>
 </resources>

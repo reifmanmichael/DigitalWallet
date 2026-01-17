@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +25,7 @@ import com.example.digitalwallet.Utils.ProfileUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
@@ -31,8 +33,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class HistoryActivity extends AppCompatActivity {
 
@@ -46,11 +50,17 @@ public class HistoryActivity extends AppCompatActivity {
 
     private String currentFilterType = "all";
     private String currentSearchQuery = "";
+    private DatabaseReference mUserRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
+
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid != null) {
+            mUserRef = FirebaseDatabase.getInstance().getReference("Users").child(uid);
+        }
 
         etSearch = findViewById(R.id.etSearch);
         btnAll = findViewById(R.id.btnFilterAll);
@@ -91,7 +101,6 @@ public class HistoryActivity extends AppCompatActivity {
     private void updateBtnVisual(TextView btn, boolean isActive) {
         if (isActive) {
             btn.setBackgroundResource(R.drawable.bg_filter_chip_active);
-            // Fix: Use theme-aware color for active text (White in light mode, Dark in dark mode)
             btn.setTextColor(ContextCompat.getColor(this, R.color.white_card));
         } else {
             btn.setBackgroundResource(R.drawable.bg_filter_chip_inactive);
@@ -113,9 +122,8 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void loadHistory() {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirebaseDatabase.getInstance().getReference("Users").child(uid).child("transactions")
+        if (mUserRef == null) return;
+        mUserRef.child("transactions")
                 .orderByChild("timestamp")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
@@ -129,6 +137,31 @@ public class HistoryActivity extends AppCompatActivity {
                     }
                     @Override public void onCancelled(@NonNull DatabaseError error) {}
                 });
+    }
+
+    private void handleAccept(Transaction tx) {
+        mUserRef.child("balance").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double balance = snapshot.exists() ? Double.parseDouble(snapshot.getValue().toString()) : 0;
+                if (balance < tx.amount) {
+                    Toast.makeText(HistoryActivity.this, "Insufficient balance", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("balance", balance - tx.amount);
+                updates.put("transactions/" + tx.id + "/status", "completed");
+                
+                // Also update the sender's transaction and balance if needed (simplified here)
+                mUserRef.updateChildren(updates);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void handleDecline(Transaction tx) {
+        mUserRef.child("transactions").child(tx.id).child("status").setValue("declined");
     }
 
     class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
@@ -160,9 +193,8 @@ public class HistoryActivity extends AppCompatActivity {
             SimpleDateFormat sdf = new SimpleDateFormat("d.M.yy", Locale.getDefault());
             String dateStr = sdf.format(new Date(tx.timestamp));
             String status = tx.status != null ? tx.status : "completed";
-            status = status.substring(0, 1).toUpperCase() + status.substring(1);
-            holder.details.setText(dateStr + " • " + status);
-
+            
+            holder.details.setText(dateStr + " • " + status.substring(0, 1).toUpperCase() + status.substring(1));
             holder.amount.setText("₪" + String.format("%.2f", tx.amount));
             holder.amount.setTextColor(ContextCompat.getColor(HistoryActivity.this, R.color.amount_text));
 
@@ -172,17 +204,28 @@ public class HistoryActivity extends AppCompatActivity {
             if ("sent".equals(tx.type)) {
                 holder.icon.setImageResource(R.drawable.ic_arrow_send);
                 holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_sent)));
+                holder.actions.setVisibility(View.GONE);
             } else {
                 holder.icon.setImageResource(R.drawable.ic_arrow_request);
                 holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_received)));
+                
+                // Show actions only for pending requests RECEIVED by the user
+                if ("pending".equals(tx.status)) {
+                    holder.actions.setVisibility(View.VISIBLE);
+                } else {
+                    holder.actions.setVisibility(View.GONE);
+                }
             }
+
+            holder.btnAccept.setOnClickListener(v -> handleAccept(tx));
+            holder.btnDecline.setOnClickListener(v -> handleDecline(tx));
         }
 
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView name, details, amount;
-            View profileContainer;
+            View profileContainer, actions, btnAccept, btnDecline;
             ImageView icon;
             ViewHolder(View container, View v) {
                 super(container);
@@ -191,6 +234,9 @@ public class HistoryActivity extends AppCompatActivity {
                 amount = v.findViewById(R.id.tvTxAmount);
                 profileContainer = v.findViewById(R.id.layoutProfileContainer);
                 icon = v.findViewById(R.id.imgTxIcon);
+                actions = v.findViewById(R.id.layoutRequestActions);
+                btnAccept = v.findViewById(R.id.btnAccept);
+                btnDecline = v.findViewById(R.id.btnDecline);
             }
         }
     }

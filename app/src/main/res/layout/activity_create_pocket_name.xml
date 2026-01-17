@@ -22,7 +22,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Open an all-purpose pocket"
+            android:text="Open a savings pocket"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/text_black"
@@ -42,10 +42,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="32dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp"
-        app:cardBackgroundColor="#FFF9C4"
+        app:cardBackgroundColor="@color/pocket_form_card_bg"
         app:layout_constraintTop_toBottomOf="@id/headerContainer">
 
         <LinearLayout
@@ -55,12 +55,13 @@
             android:padding="24dp">
 
             <TextView
+                android:id="@+id/tvAmountLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Why?"
-                android:textSize="36sp"
+                android:textSize="48sp"
                 android:textStyle="normal"
-                android:textColor="@color/text_black"
+                android:textColor="@color/text_on_pocket_card"
                 android:layout_marginBottom="32dp"/>
 
             <EditText
@@ -69,16 +70,16 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:hint="Pocket name"
-                android:textColorHint="@color/text_gray"
-                android:textColor="@color/text_black"
-                android:textSize="24sp"
+                android:textColorHint="#666666"
+                android:textColor="@color/text_on_pocket_card"
+                android:textSize="28sp"
                 android:inputType="textCapSentences"
                 android:maxLines="1"/>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="@color/text_black"
+                android:layout_height="1dp"
+                android:background="@color/text_on_pocket_card"
                 android:layout_marginTop="4dp"/>
 
         </LinearLayout>

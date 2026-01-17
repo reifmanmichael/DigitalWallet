@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +12,7 @@ import com.example.digitalwallet.MainActivity;
 import com.example.digitalwallet.Model.Transaction;
 import com.example.digitalwallet.Model.User;
 import com.example.digitalwallet.R;
+import com.example.digitalwallet.Utils.CustomPopup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -40,7 +40,7 @@ public class TransferReasonActivity extends AppCompatActivity {
             finish(); return;
         }
 
-        myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        myUid = FirebaseAuth.getInstance().getUid();
         mDb = FirebaseDatabase.getInstance().getReference();
 
         recipientUid = getIntent().getStringExtra("recipient_uid");
@@ -76,7 +76,7 @@ public class TransferReasonActivity extends AppCompatActivity {
         try {
             amount = Double.parseDouble(amountStr);
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show();
+            CustomPopup.show(this, "Error", "Invalid amount");
             resetButton();
             return;
         }
@@ -88,7 +88,7 @@ public class TransferReasonActivity extends AppCompatActivity {
                 DataSnapshot recSnap = rootSnap.child("Users").child(recipientUid);
 
                 if (!mySnap.exists() || !recSnap.exists()) {
-                    Toast.makeText(TransferReasonActivity.this, "User not found", Toast.LENGTH_SHORT).show();
+                    CustomPopup.show(TransferReasonActivity.this, "Error", "User not found");
                     resetButton();
                     return;
                 }
@@ -97,12 +97,11 @@ public class TransferReasonActivity extends AppCompatActivity {
                 User recipient = recSnap.getValue(User.class);
 
                 if (me == null || recipient == null) {
-                    Toast.makeText(TransferReasonActivity.this, "Error retrieving user data", Toast.LENGTH_SHORT).show();
+                    CustomPopup.show(TransferReasonActivity.this, "Error", "Error retrieving user data");
                     resetButton();
                     return;
                 }
 
-                // According to the user, BOTH Send and Request should initiate requests (pending)
                 performPendingTransaction(me, recipient, amount, mySnap, recSnap);
             }
             @Override public void onCancelled(@NonNull DatabaseError error) { resetButton(); }
@@ -122,21 +121,16 @@ public class TransferReasonActivity extends AppCompatActivity {
         Transaction myTx, recTx;
 
         if ("request".equals(mode)) {
-            // I (Initiator) am requesting -> I expect to receive
             myTx = new Transaction(txId, "received", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid);
-            // They (Target) are requested from -> They are expected to send
             recTx = new Transaction(txId, "sent", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid);
         } else {
-            // I (Initiator) am sending -> I am the one sending
             myTx = new Transaction(txId, "sent", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid);
-            // They (Target) are receiving -> They are receiving
             recTx = new Transaction(txId, "received", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid);
         }
 
         updates.put("Users/" + myUid + "/transactions/" + txId, myTx);
         updates.put("Users/" + recipientUid + "/transactions/" + txId, recTx);
 
-        // Update contacts and frequencies
         updates.put("Users/" + myUid + "/saved_contacts/" + recipientUid, true);
         updates.put("Users/" + recipientUid + "/saved_contacts/" + myUid, true);
 
@@ -155,11 +149,14 @@ public class TransferReasonActivity extends AppCompatActivity {
 
         mDb.updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                String msg = "request".equals(mode) ? "Request Sent!" : "Transaction Initiated!";
-                Toast.makeText(TransferReasonActivity.this, msg, Toast.LENGTH_LONG).show();
+                String action = "request".equals(mode) ? "Requested" : "Sent a transfer of";
+                String target = "request".equals(mode) ? "from " + recipientName + "." : "to " + recipientName + ".";
+                String message = action + " ₪" + amountStr + " " + target;
+                
+                MainActivity.pendingSuccessMessage = message;
                 navigateHome();
             } else {
-                Toast.makeText(TransferReasonActivity.this, "Failed to initiate transaction", Toast.LENGTH_SHORT).show();
+                CustomPopup.show(TransferReasonActivity.this, "Error", "Failed to initiate transaction");
                 resetButton();
             }
         });
