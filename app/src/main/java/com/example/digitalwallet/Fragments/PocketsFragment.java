@@ -71,7 +71,6 @@ public class PocketsFragment extends Fragment {
         };
 
         cardAllPurpose.setOnClickListener(startAllPurposeFlow);
-        view.findViewById(R.id.btnHeaderAdd).setOnClickListener(startAllPurposeFlow);
 
         cardSavings.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), CreatePocketNameActivity.class);

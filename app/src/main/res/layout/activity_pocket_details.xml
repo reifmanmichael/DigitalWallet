@@ -279,7 +279,16 @@
                         android:textColor="@color/text_black"
                         android:padding="20dp"/>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/separator"/>
+                    
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerPocketActivity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:visibility="gone"/>
+
                     <TextView
+                        android:id="@+id/tvNoActivity"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="No recent transactions"
