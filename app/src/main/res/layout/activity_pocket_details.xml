@@ -103,6 +103,35 @@
                     android:textColor="@color/text_black"
                     android:textSize="24sp"
                     android:layout_marginTop="4dp"/>
+
+                <!-- Locked Status Badge -->
+                <LinearLayout
+                    android:id="@+id/layoutLockStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_rounded_button"
+                    android:backgroundTint="#1A007AFF"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_lock"
+                        app:tint="@color/primary_blue"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LOCKED"
+                        android:textColor="@color/primary_blue"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.05"
+                        android:layout_marginStart="6dp"/>
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Action Buttons -->
@@ -133,6 +162,7 @@
                         android:clickable="false"
                         android:focusable="false"/>
                     <TextView
+                        android:id="@+id/tvWithdrawLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Withdraw"

@@ -40,11 +40,11 @@ public class PocketDetailsActivity extends AppCompatActivity {
     private Pocket currentPocket;
     private double mainBalance = 0;
 
-    private TextView tvName, tvBalance;
+    private TextView tvName, tvBalance, tvWithdrawLabel;
     private EditText etName;
     private ImageButton btnSaveName;
     private ImageView imgIcon;
-    private View btnWithdraw, btnDeposit, btnMore, layoutMoreExpanded;
+    private View btnWithdraw, btnDeposit, btnMore, layoutMoreExpanded, layoutLockStatus;
     private ImageButton ibWithdraw, ibDeposit, ibMore, btnActionLock, btnActionEdit;
     private View btnActionDelete;
 
@@ -69,8 +69,10 @@ public class PocketDetailsActivity extends AppCompatActivity {
         btnSaveName = findViewById(R.id.btnSaveName);
         tvBalance = findViewById(R.id.tvPocketDetailBalance);
         imgIcon = findViewById(R.id.imgPocketDetailIcon);
+        layoutLockStatus = findViewById(R.id.layoutLockStatus);
         
         btnWithdraw = findViewById(R.id.btnWithdraw);
+        tvWithdrawLabel = findViewById(R.id.tvWithdrawLabel);
         btnDeposit = findViewById(R.id.btnDeposit);
         btnMore = findViewById(R.id.btnMore);
         layoutMoreExpanded = findViewById(R.id.layoutMoreExpanded);
@@ -98,7 +100,7 @@ public class PocketDetailsActivity extends AppCompatActivity {
 
         btnWithdraw.setOnClickListener(v -> {
             if (currentPocket != null && currentPocket.isLocked) {
-                CustomPopup.show(this, "Locked", "This pocket is locked!");
+                CustomPopup.show(this, "Locked", "This pocket is locked and cannot be withdrawn from.");
                 return;
             }
             Intent intent = new Intent(this, PocketTransferActivity.class);
@@ -283,19 +285,22 @@ public class PocketDetailsActivity extends AppCompatActivity {
                     }
 
                     boolean isLocked = currentPocket.isLocked;
+                    layoutLockStatus.setVisibility(isLocked ? View.VISIBLE : View.GONE);
                     btnActionLock.setImageTintList(ColorStateList.valueOf(isLocked ? 
                             ContextCompat.getColor(PocketDetailsActivity.this, R.color.primary_blue) : 
                             ContextCompat.getColor(PocketDetailsActivity.this, R.color.text_black)));
 
-                    updateUIForClosedState(currentPocket.isClosed);
+                    updateUIStates();
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
-    private void updateUIForClosedState(boolean isClosed) {
-        if (isClosed) {
+    private void updateUIStates() {
+        if (currentPocket == null) return;
+
+        if (currentPocket.isClosed) {
             btnWithdraw.setEnabled(false);
             btnDeposit.setEnabled(false);
             btnMore.setEnabled(false);
@@ -318,7 +323,22 @@ public class PocketDetailsActivity extends AppCompatActivity {
             btnWithdraw.setAlpha(0.5f);
             btnDeposit.setAlpha(0.5f);
             btnMore.setAlpha(0.5f);
+        } else if (currentPocket.isLocked) {
+            // Locked State
+            btnWithdraw.setAlpha(0.5f);
+            tvWithdrawLabel.setTextColor(ContextCompat.getColor(this, R.color.text_gray));
+            ibWithdraw.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.separator)));
+            ibWithdraw.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.text_gray)));
+            
+            // Deposit remains active
+            btnDeposit.setAlpha(1.0f);
+            ibDeposit.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.action_deposit)));
+            ibDeposit.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+            
+            btnMore.setAlpha(1.0f);
+            ibMore.setEnabled(true);
         } else {
+            // Normal Active State
             btnWithdraw.setEnabled(true);
             btnDeposit.setEnabled(true);
             btnMore.setEnabled(true);
@@ -326,6 +346,7 @@ public class PocketDetailsActivity extends AppCompatActivity {
 
             ibWithdraw.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primary_blue)));
             ibWithdraw.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+            tvWithdrawLabel.setTextColor(ContextCompat.getColor(this, R.color.text_black));
             
             ibDeposit.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.action_deposit)));
             ibDeposit.setImageTintList(ColorStateList.valueOf(Color.WHITE));

@@ -2,7 +2,6 @@ package com.example.digitalwallet.Fragments;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -58,6 +57,7 @@ public class HomeFragment extends Fragment {
     private String myUid;
     private double myCurrentBalance = 0;
     
+    private final List<Transaction> recentTransactions = new ArrayList<>();
     private final Set<String> displayedMostActiveUids = new HashSet<>();
 
     @Nullable
@@ -117,10 +117,25 @@ public class HomeFragment extends Fragment {
                     tvMainBalance.setTextSize(56);
                     tvMainBalance.setText(String.format("%.2f", user.balance));
                     tvStickyBalance.setText(String.format("₪ %.2f", user.balance));
+                    
+                    renderTransactions();
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    private void renderTransactions() {
+        if (!isAdded() || getContext() == null) return;
+        
+        recentContainer.removeAllViews();
+        if (recentTransactions.isEmpty()) {
+            showEmptyHistory();
+        } else {
+            for (Transaction tx : recentTransactions) {
+                addTransactionView(tx);
+            }
+        }
     }
 
     private void addTransactionView(Transaction tx) {
@@ -256,18 +271,12 @@ public class HomeFragment extends Fragment {
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded() || getContext() == null) return;
-                recentContainer.removeAllViews();
-                List<Transaction> list = new ArrayList<>();
+                recentTransactions.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
-                    list.add(data.getValue(Transaction.class));
+                    recentTransactions.add(data.getValue(Transaction.class));
                 }
-                Collections.reverse(list);
-                if (list.isEmpty()) {
-                    showEmptyHistory();
-                } else {
-                    for (Transaction tx : list) addTransactionView(tx);
-                }
+                Collections.reverse(recentTransactions);
+                renderTransactions();
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });

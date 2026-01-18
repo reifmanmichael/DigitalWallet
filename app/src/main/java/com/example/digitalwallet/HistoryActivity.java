@@ -1,7 +1,6 @@
 package com.example.digitalwallet;
 
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -51,15 +50,19 @@ public class HistoryActivity extends AppCompatActivity {
     private String currentFilterType = "all";
     private String currentSearchQuery = "";
     private DatabaseReference mUserRef;
+    private DatabaseReference mRootRef;
+    private String myUid;
+    private double myCurrentBalance = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid != null) {
-            mUserRef = FirebaseDatabase.getInstance().getReference("Users").child(uid);
+        mRootRef = FirebaseDatabase.getInstance().getReference();
+        myUid = FirebaseAuth.getInstance().getUid();
+        if (myUid != null) {
+            mUserRef = mRootRef.child("Users").child(myUid);
         }
 
         etSearch = findViewById(R.id.etSearch);
@@ -87,7 +90,22 @@ public class HistoryActivity extends AppCompatActivity {
         btnSent.setOnClickListener(v -> updateFilterType("sent"));
         btnReceived.setOnClickListener(v -> updateFilterType("received"));
 
+        loadBalance();
         loadHistory();
+    }
+
+    private void loadBalance() {
+        if (mUserRef == null) return;
+        mUserRef.child("balance").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    myCurrentBalance = Double.parseDouble(snapshot.getValue().toString());
+                    adapter.notifyDataSetChanged();
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void updateFilterType(String type) {
@@ -139,29 +157,54 @@ public class HistoryActivity extends AppCompatActivity {
                 });
     }
 
-    private void handleAccept(Transaction tx) {
-        mUserRef.child("balance").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                double balance = snapshot.exists() ? Double.parseDouble(snapshot.getValue().toString()) : 0;
-                if (balance < tx.amount) {
-                    Toast.makeText(HistoryActivity.this, "Insufficient balance", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+    private void handleRequest(Transaction tx, boolean accept) {
+        Map<String, Object> updates = new HashMap<>();
+        String status = accept ? "completed" : "declined";
 
-                Map<String, Object> updates = new HashMap<>();
-                updates.put("balance", balance - tx.amount);
-                updates.put("transactions/" + tx.id + "/status", "completed");
+        mRootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot root) {
+                DataSnapshot myUserSnap = root.child("Users").child(myUid);
+                DataSnapshot otherUserSnap = root.child("Users").child(tx.relatedUserUid);
                 
-                // Also update the sender's transaction and balance if needed (simplified here)
-                mUserRef.updateChildren(updates);
+                if (!myUserSnap.exists() || !otherUserSnap.exists()) return;
+
+                double myBal = Double.parseDouble(myUserSnap.child("balance").getValue().toString());
+                double otherBal = Double.parseDouble(otherUserSnap.child("balance").getValue().toString());
+
+                if (accept) {
+                    if ("sent".equals(tx.type)) {
+                        // I was requested money. I must pay now.
+                        if (myBal < tx.amount) {
+                            Toast.makeText(HistoryActivity.this, "Insufficient funds", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
+                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                    } else {
+                        // I received money from limbo. Sender already paid.
+                        updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
+                    }
+                } else {
+                    // Declined
+                    if ("received".equals(tx.type)) {
+                        // I declined money sent to me. Return it to the sender.
+                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                    }
+                }
+                
+                updates.put("Users/" + myUid + "/transactions/" + tx.id + "/status", status);
+                updates.put("Users/" + tx.relatedUserUid + "/transactions/" + tx.id + "/status", status);
+
+                mRootRef.updateChildren(updates).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String msg = status.equals("completed") ? "Transaction completed!" : "Transaction declined.";
+                        Toast.makeText(HistoryActivity.this, msg, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
-    }
-
-    private void handleDecline(Transaction tx) {
-        mUserRef.child("transactions").child(tx.id).child("status").setValue("declined");
     }
 
     class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
@@ -204,28 +247,52 @@ public class HistoryActivity extends AppCompatActivity {
             if ("sent".equals(tx.type)) {
                 holder.icon.setImageResource(R.drawable.ic_arrow_send);
                 holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_sent)));
-                holder.actions.setVisibility(View.GONE);
             } else {
                 holder.icon.setImageResource(R.drawable.ic_arrow_request);
                 holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_received)));
-                
-                // Show actions only for pending requests RECEIVED by the user
-                if ("pending".equals(tx.status)) {
-                    holder.actions.setVisibility(View.VISIBLE);
-                } else {
-                    holder.actions.setVisibility(View.GONE);
-                }
             }
 
-            holder.btnAccept.setOnClickListener(v -> handleAccept(tx));
-            holder.btnDecline.setOnClickListener(v -> handleDecline(tx));
+            // Action Logic for Pending Transactions
+            if ("pending".equals(tx.status)) {
+                if (!myUid.equals(tx.initiatorUid)) {
+                    // I am the target of this pending action
+                    holder.actions.setVisibility(View.VISIBLE);
+                    
+                    if ("sent".equals(tx.type)) {
+                        // I was requested money. I must PAY.
+                        holder.btnAccept.setText("Pay");
+                        boolean canPay = myCurrentBalance >= tx.amount;
+                        holder.btnAccept.setAlpha(canPay ? 1.0f : 0.3f);
+                    } else {
+                        // I was sent money. I must ACCEPT.
+                        holder.btnAccept.setText("Accept");
+                        holder.btnAccept.setAlpha(1.0f);
+                    }
+                } else {
+                    // I initiated it. I am waiting.
+                    holder.actions.setVisibility(View.GONE);
+                    holder.details.setText(dateStr + " • Waiting...");
+                }
+            } else {
+                holder.actions.setVisibility(View.GONE);
+            }
+
+            holder.btnAccept.setOnClickListener(v -> {
+                if ("Pay".equals(holder.btnAccept.getText().toString()) && myCurrentBalance < tx.amount) {
+                    Toast.makeText(HistoryActivity.this, "Insufficient funds to pay", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                handleRequest(tx, true);
+            });
+            holder.btnDecline.setOnClickListener(v -> handleRequest(tx, false));
         }
 
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView name, details, amount;
-            View profileContainer, actions, btnAccept, btnDecline;
+            View profileContainer, actions;
+            TextView btnAccept, btnDecline;
             ImageView icon;
             ViewHolder(View container, View v) {
                 super(container);
