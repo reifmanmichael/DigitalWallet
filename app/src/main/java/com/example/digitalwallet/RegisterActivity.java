@@ -20,6 +20,9 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.digitalwallet.Model.User;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -126,7 +129,12 @@ public class RegisterActivity extends AppCompatActivity {
                         String[] colors = {"#FF3B30", "#FF9500", "#FFCC00", "#34C759", "#007AFF", "#AF52DE", "#FF2D55"};
                         String randomColor = colors[new Random().nextInt(colors.length)];
 
-                        User newUser = new User(uid, name, email, phone, 0.0, randomColor);
+                        // Generate random bank balance between 1M and 10B
+                        long min = 1_000_000L;
+                        long max = 10_000_000_000L;
+                        double randomBankBalance = min + (new Random().nextDouble() * (max - min));
+
+                        User newUser = new User(uid, name, email, phone, 0.0, randomBankBalance, randomColor);
 
                         FirebaseDatabase.getInstance().getReference("Users")
                                 .child(uid)
@@ -143,12 +151,27 @@ public class RegisterActivity extends AppCompatActivity {
                                         startActivity(intent);
                                         finish();
                                     } else {
-                                        Toast.makeText(RegisterActivity.this, "Save Failed", Toast.LENGTH_SHORT).show();
+                                        String error = dbTask.getException() != null ? dbTask.getException().getMessage() : "Database error";
+                                        Toast.makeText(RegisterActivity.this, "Save Failed: " + error, Toast.LENGTH_LONG).show();
                                     }
                                 });
                     } else {
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
-                        Toast.makeText(RegisterActivity.this, "Registration Failed", Toast.LENGTH_SHORT).show();
+                        
+                        String errorMessage = "Registration Failed";
+                        Exception exception = task.getException();
+                        
+                        if (exception instanceof FirebaseAuthUserCollisionException) {
+                            errorMessage = "This email is already registered.";
+                        } else if (exception instanceof FirebaseAuthInvalidCredentialsException) {
+                            errorMessage = "Invalid email format.";
+                        } else if (exception instanceof FirebaseAuthWeakPasswordException) {
+                            errorMessage = "Password is too weak.";
+                        } else if (exception != null) {
+                            errorMessage = exception.getMessage();
+                        }
+                        
+                        Toast.makeText(RegisterActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                     }
                 });
     }

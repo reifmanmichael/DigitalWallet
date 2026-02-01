@@ -50,7 +50,7 @@ public class HistoryActivity extends AppCompatActivity {
     private String currentFilterType = "all";
     private String currentSearchQuery = "";
     private DatabaseReference mUserRef;
-    private DatabaseReference mRootRef;
+    private DatabaseReference mUsersRef;
     private String myUid;
     private double myCurrentBalance = 0;
 
@@ -59,10 +59,11 @@ public class HistoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        mRootRef = FirebaseDatabase.getInstance().getReference();
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        mUsersRef = db.getReference("Users");
         myUid = FirebaseAuth.getInstance().getUid();
         if (myUid != null) {
-            mUserRef = mRootRef.child("Users").child(myUid);
+            mUserRef = mUsersRef.child(myUid);
         }
 
         etSearch = findViewById(R.id.etSearch);
@@ -158,49 +159,48 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void handleRequest(Transaction tx, boolean accept) {
-        Map<String, Object> updates = new HashMap<>();
-        String status = accept ? "completed" : "declined";
+        final Map<String, Object> updates = new HashMap<>();
+        final String status = accept ? "completed" : "declined";
 
-        mRootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        mUsersRef.child(myUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot root) {
-                DataSnapshot myUserSnap = root.child("Users").child(myUid);
-                DataSnapshot otherUserSnap = root.child("Users").child(tx.relatedUserUid);
-                
-                if (!myUserSnap.exists() || !otherUserSnap.exists()) return;
+            public void onDataChange(@NonNull DataSnapshot mySnap) {
+                mUsersRef.child(tx.relatedUserUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot otherSnap) {
+                        if (!mySnap.exists() || !otherSnap.exists()) return;
 
-                double myBal = Double.parseDouble(myUserSnap.child("balance").getValue().toString());
-                double otherBal = Double.parseDouble(otherUserSnap.child("balance").getValue().toString());
+                        double myBal = Double.parseDouble(mySnap.child("balance").getValue().toString());
+                        double otherBal = Double.parseDouble(otherSnap.child("balance").getValue().toString());
 
-                if (accept) {
-                    if ("sent".equals(tx.type)) {
-                        // I was requested money. I must pay now.
-                        if (myBal < tx.amount) {
-                            Toast.makeText(HistoryActivity.this, "Insufficient funds", Toast.LENGTH_SHORT).show();
-                            return;
+                        if (accept) {
+                            if ("sent".equals(tx.type)) {
+                                if (myBal < tx.amount) {
+                                    Toast.makeText(HistoryActivity.this, "Insufficient funds", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
+                                updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                            } else {
+                                updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
+                            }
+                        } else {
+                            if ("received".equals(tx.type)) {
+                                updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                            }
                         }
-                        updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
-                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
-                    } else {
-                        // I received money from limbo. Sender already paid.
-                        updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
-                    }
-                } else {
-                    // Declined
-                    if ("received".equals(tx.type)) {
-                        // I declined money sent to me. Return it to the sender.
-                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
-                    }
-                }
-                
-                updates.put("Users/" + myUid + "/transactions/" + tx.id + "/status", status);
-                updates.put("Users/" + tx.relatedUserUid + "/transactions/" + tx.id + "/status", status);
+                        
+                        updates.put("Users/" + myUid + "/transactions/" + tx.id + "/status", status);
+                        updates.put("Users/" + tx.relatedUserUid + "/transactions/" + tx.id + "/status", status);
 
-                mRootRef.updateChildren(updates).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String msg = status.equals("completed") ? "Transaction completed!" : "Transaction declined.";
-                        Toast.makeText(HistoryActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        mUsersRef.getParent().updateChildren(updates).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                String msg = status.equals("completed") ? "Transaction completed!" : "Transaction declined.";
+                                Toast.makeText(HistoryActivity.this, msg, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
                 });
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
@@ -252,24 +252,19 @@ public class HistoryActivity extends AppCompatActivity {
                 holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_received)));
             }
 
-            // Action Logic for Pending Transactions
             if ("pending".equals(tx.status)) {
                 if (!myUid.equals(tx.initiatorUid)) {
-                    // I am the target of this pending action
                     holder.actions.setVisibility(View.VISIBLE);
                     
                     if ("sent".equals(tx.type)) {
-                        // I was requested money. I must PAY.
                         holder.btnAccept.setText("Pay");
                         boolean canPay = myCurrentBalance >= tx.amount;
                         holder.btnAccept.setAlpha(canPay ? 1.0f : 0.3f);
                     } else {
-                        // I was sent money. I must ACCEPT.
                         holder.btnAccept.setText("Accept");
                         holder.btnAccept.setAlpha(1.0f);
                     }
                 } else {
-                    // I initiated it. I am waiting.
                     holder.actions.setVisibility(View.GONE);
                     holder.details.setText(dateStr + " • Waiting...");
                 }

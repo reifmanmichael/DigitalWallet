@@ -1,7 +1,8 @@
 package com.example.digitalwallet.Fragments;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
 import com.example.digitalwallet.ContactDetailsActivity;
+import com.example.digitalwallet.DepositActivity;
 import com.example.digitalwallet.HistoryActivity;
 import com.example.digitalwallet.Model.Transaction;
 import com.example.digitalwallet.Model.User;
@@ -27,6 +29,8 @@ import com.example.digitalwallet.R;
 import com.example.digitalwallet.RequestActivity;
 import com.example.digitalwallet.SendActivity;
 import com.example.digitalwallet.Utils.ProfileUtils;
+import com.example.digitalwallet.WithdrawActivity;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -44,7 +48,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 public class HomeFragment extends Fragment {
@@ -53,7 +56,7 @@ public class HomeFragment extends Fragment {
     private View stickyHeader, balanceContainer;
     private LinearLayout recentContainer, mostActiveContainer;
     private DatabaseReference mUserRef;
-    private DatabaseReference mRootRef;
+    private DatabaseReference mUsersRef;
     private String myUid;
     private double myCurrentBalance = 0;
     
@@ -65,10 +68,12 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        mRootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        mUsersRef = rootRef.child("Users");
+        
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            mUserRef = mRootRef.child("Users").child(myUid);
+            mUserRef = mUsersRef.child(myUid);
         }
 
         tvMainBalance = view.findViewById(R.id.tvMainBalance);
@@ -77,6 +82,7 @@ public class HomeFragment extends Fragment {
         stickyHeader = view.findViewById(R.id.stickyHeader);
         balanceContainer = view.findViewById(R.id.balanceContainer);
         ImageButton btnDeposit = view.findViewById(R.id.btnDeposit);
+        ImageButton btnMore = view.findViewById(R.id.btnMore);
         recentContainer = view.findViewById(R.id.recentActivityContainer);
         mostActiveContainer = view.findViewById(R.id.mostActiveContainer);
 
@@ -93,7 +99,9 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        btnDeposit.setOnClickListener(v -> depositDummyMoney());
+        btnDeposit.setOnClickListener(v -> startActivity(new Intent(getActivity(), DepositActivity.class)));
+        btnMore.setOnClickListener(v -> showMoreMenu());
+        
         view.findViewById(R.id.btnSend).setOnClickListener(v -> startActivity(new Intent(getActivity(), SendActivity.class)));
         view.findViewById(R.id.btnRequest).setOnClickListener(v -> startActivity(new Intent(getActivity(), RequestActivity.class)));
         view.findViewById(R.id.btnSeeAllHistory).setOnClickListener(v -> startActivity(new Intent(getActivity(), HistoryActivity.class)));
@@ -115,14 +123,35 @@ public class HomeFragment extends Fragment {
                     myCurrentBalance = user.balance;
                     tvCurrencySymbol.setVisibility(View.VISIBLE);
                     tvMainBalance.setTextSize(56);
-                    tvMainBalance.setText(String.format("%.2f", user.balance));
-                    tvStickyBalance.setText(String.format("₪ %.2f", user.balance));
+                    tvMainBalance.setText(String.format(Locale.getDefault(), "%.2f", user.balance));
+                    tvStickyBalance.setText(String.format(Locale.getDefault(), "₪ %.2f", user.balance));
                     
                     renderTransactions();
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    private void showMoreMenu() {
+        if (getContext() == null) return;
+        
+        BottomSheetDialog dialog = new BottomSheetDialog(getContext());
+        View view = getLayoutInflater().inflate(R.layout.dialog_home_more, null);
+        dialog.setContentView(view);
+
+        // Make background transparent to show rounded corners from XML
+        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        if (bottomSheet != null) {
+            bottomSheet.setBackgroundResource(android.R.color.transparent);
+        }
+
+        view.findViewById(R.id.btnMenuWithdraw).setOnClickListener(v -> {
+            dialog.dismiss();
+            startActivity(new Intent(getActivity(), WithdrawActivity.class));
+        });
+
+        dialog.show();
     }
 
     private void renderTransactions() {
@@ -159,7 +188,7 @@ public class HomeFragment extends Fragment {
         statusText = statusText.substring(0, 1).toUpperCase() + statusText.substring(1);
         details.setText(dateStr + " • " + statusText);
 
-        amount.setText("₪" + String.format("%.2f", tx.amount));
+        amount.setText("₪" + String.format(Locale.getDefault(), "%.2f", tx.amount));
         amount.setTextColor(ContextCompat.getColor(getContext(), R.color.amount_text));
 
         ProfileUtils.setProfileInitial(profileContainer, tx.relatedUserName, tx.relatedUserColor);
@@ -167,20 +196,17 @@ public class HomeFragment extends Fragment {
         icon.setColorFilter(ContextCompat.getColor(getContext(), R.color.tx_arrow_color));
         if ("sent".equals(tx.type)) {
             icon.setImageResource(R.drawable.ic_arrow_send);
-            icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.bg_tx_sent)));
+            icon.setBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.bg_tx_sent)));
         } else {
             icon.setImageResource(R.drawable.ic_arrow_request);
-            icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.bg_tx_received)));
+            icon.setBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.bg_tx_received)));
         }
 
-        // Action Logic for Pending Transactions
         if ("pending".equals(tx.status)) {
             if (!myUid.equals(tx.initiatorUid)) {
-                // I am the receiver of a Send OR the target of a Request
                 layoutActions.setVisibility(View.VISIBLE);
                 
                 if ("sent".equals(tx.type)) {
-                    // This means I was REQUESTED money from. I must pay.
                     boolean canAccept = myCurrentBalance >= tx.amount;
                     if (canAccept) {
                         btnAccept.setAlpha(1.0f);
@@ -191,7 +217,6 @@ public class HomeFragment extends Fragment {
                     }
                     btnAccept.setText("Pay");
                 } else {
-                    // This means I RECEIVED money (it's in limbo). I must accept.
                     btnAccept.setAlpha(1.0f);
                     btnAccept.setOnClickListener(v -> handleRequest(tx, true));
                     btnAccept.setText("Accept");
@@ -199,7 +224,6 @@ public class HomeFragment extends Fragment {
 
                 btnDecline.setOnClickListener(v -> handleRequest(tx, false));
             } else {
-                // I am the initiator. I am waiting for the other person.
                 details.setText(dateStr + " • Waiting...");
             }
         }
@@ -212,42 +236,41 @@ public class HomeFragment extends Fragment {
     }
 
     private void handleRequest(Transaction tx, boolean accept) {
-        Map<String, Object> updates = new HashMap<>();
-        String status = accept ? "completed" : "declined";
+        final Map<String, Object> updates = new HashMap<>();
+        final String status = accept ? "completed" : "declined";
 
-        mRootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        mUsersRef.child(myUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot root) {
-                DataSnapshot myUserSnap = root.child("Users").child(myUid);
-                DataSnapshot otherUserSnap = root.child("Users").child(tx.relatedUserUid);
-                
-                if (!myUserSnap.exists() || !otherUserSnap.exists()) return;
+            public void onDataChange(@NonNull DataSnapshot mySnap) {
+                mUsersRef.child(tx.relatedUserUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot otherSnap) {
+                        if (!mySnap.exists() || !otherSnap.exists()) return;
 
-                double myBal = Double.parseDouble(myUserSnap.child("balance").getValue().toString());
-                double otherBal = Double.parseDouble(otherUserSnap.child("balance").getValue().toString());
+                        double myBal = Double.parseDouble(mySnap.child("balance").getValue().toString());
+                        double otherBal = Double.parseDouble(otherSnap.child("balance").getValue().toString());
 
-                if (accept) {
-                    if ("sent".equals(tx.type)) {
-                        // I was requested money. I must pay now.
-                        if (myBal < tx.amount) {
-                            Toast.makeText(getContext(), "Insufficient funds", Toast.LENGTH_SHORT).show();
-                            return;
+                        if (accept) {
+                            if ("sent".equals(tx.type)) {
+                                if (myBal < tx.amount) {
+                                    Toast.makeText(getContext(), "Insufficient funds", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
+                                updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                            } else {
+                                updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
+                            }
+                        } else {
+                            if ("received".equals(tx.type)) {
+                                updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                            }
                         }
-                        updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
-                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
-                    } else {
-                        // I received money from limbo. Sender already paid.
-                        updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
+                        
+                        finalizeRequestUpdate(tx, status, updates);
                     }
-                } else {
-                    // Declined
-                    if ("received".equals(tx.type)) {
-                        // I declined money sent to me. Return it to the sender.
-                        updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
-                    }
-                    // If it was a request and I decline, no balance changes needed.
-                }
-                finalizeRequestUpdate(tx, status, updates);
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
@@ -257,7 +280,7 @@ public class HomeFragment extends Fragment {
         updates.put("Users/" + myUid + "/transactions/" + tx.id + "/status", status);
         updates.put("Users/" + tx.relatedUserUid + "/transactions/" + tx.id + "/status", status);
         
-        mRootRef.updateChildren(updates).addOnCompleteListener(task -> {
+        FirebaseDatabase.getInstance().getReference().updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 String msg = status.equals("completed") ? "Transaction completed!" : "Transaction declined.";
                 Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
@@ -286,7 +309,7 @@ public class HomeFragment extends Fragment {
         TextView empty = new TextView(getContext());
         empty.setText("No recent transactions");
         empty.setTextColor(ContextCompat.getColor(getContext(), R.color.text_gray));
-        empty.setGravity(Gravity.CENTER);
+        empty.setGravity(android.view.Gravity.CENTER);
         empty.setPadding(0, 80, 0, 80);
         recentContainer.addView(empty);
     }
@@ -320,53 +343,43 @@ public class HomeFragment extends Fragment {
         TextView empty = new TextView(getContext());
         empty.setText("No contacts yet");
         empty.setTextColor(ContextCompat.getColor(getContext(), R.color.text_gray));
-        empty.setGravity(Gravity.CENTER);
+        empty.setGravity(android.view.Gravity.CENTER);
         empty.setPadding(0, 80, 0, 80);
         mostActiveContainer.addView(empty);
     }
 
     private void fetchAndAddActiveContact(String userId) {
-        FirebaseDatabase.getInstance().getReference("Users").child(userId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (!isAdded() || getContext() == null) return;
-                        
-                        if (displayedMostActiveUids.contains(userId)) return;
-                        displayedMostActiveUids.add(userId);
+        mUsersRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded() || getContext() == null) return;
+                
+                if (displayedMostActiveUids.contains(userId)) return;
+                displayedMostActiveUids.add(userId);
 
-                        User u = snapshot.getValue(User.class);
-                        if (u != null) {
-                            if (u.uid == null) u.uid = userId;
-                            
-                            View view = LayoutInflater.from(getContext()).inflate(R.layout.item_most_active, mostActiveContainer, false);
-                            View profileContainer = view.findViewById(R.id.layoutProfileContainer);
-                            
-                            ProfileUtils.setProfileInitial(profileContainer, u.displayName, u.profileColor);
+                User u = snapshot.getValue(User.class);
+                if (u != null) {
+                    if (u.uid == null) u.uid = userId;
+                    
+                    View view = LayoutInflater.from(getContext()).inflate(R.layout.item_most_active, mostActiveContainer, false);
+                    View profileContainer = view.findViewById(R.id.layoutProfileContainer);
+                    
+                    ProfileUtils.setProfileInitial(profileContainer, u.displayName, u.profileColor);
 
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-                            view.setLayoutParams(params);
-                            ((TextView) view.findViewById(R.id.tvActiveName)).setText(u.displayName.split(" ")[0]);
-                            view.setOnClickListener(v -> {
-                                Intent intent = new Intent(getActivity(), ContactDetailsActivity.class);
-                                intent.putExtra("contact_uid", u.uid);
-                                intent.putExtra("contact_name", u.displayName);
-                                intent.putExtra("contact_color", u.profileColor);
-                                startActivity(intent);
-                            });
-                            mostActiveContainer.addView(view);
-                        }
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError error) {}
-                });
-    }
-
-    private void depositDummyMoney() {
-        if (mUserRef == null) return;
-        mUserRef.child("balance").get().addOnSuccessListener(snapshot -> {
-            double current = 0;
-            if (snapshot.exists()) current = Double.parseDouble(Objects.requireNonNull(snapshot.getValue()).toString());
-            mUserRef.child("balance").setValue(current + 1000.00);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+                    view.setLayoutParams(params);
+                    ((TextView) view.findViewById(R.id.tvActiveName)).setText(u.displayName.split(" ")[0]);
+                    view.setOnClickListener(v -> {
+                        Intent intent = new Intent(getActivity(), ContactDetailsActivity.class);
+                        intent.putExtra("contact_uid", u.uid);
+                        intent.putExtra("contact_name", u.displayName);
+                        intent.putExtra("contact_color", u.profileColor);
+                        startActivity(intent);
+                    });
+                    mostActiveContainer.addView(view);
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 }

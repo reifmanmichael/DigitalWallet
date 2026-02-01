@@ -27,6 +27,8 @@
     <color name="btn_send">#FF3B30</color>
     <color name="btn_request">#5AC8FA</color>
     <color name="btn_deposit">#CCEB95</color>
+    <color name="btn_more_bg">#FFFFFF</color>
+    <color name="btn_more_icon">#000000</color>
     <color name="separator">#E5E5EA</color>
 
     <color name="action_send">#FF3B30</color>
@@ -47,4 +49,11 @@
     <color name="pocket_form_card_bg">#FFF9C4</color>
     
     <color name="text_on_pocket_card">#000000</color>
+
+    <!-- New Feature Colors - Light Mode (Vibrant backgrounds, Black text) -->
+    <color name="bg_deposit_funds">#A8F250</color> 
+    <color name="text_deposit_funds">#000000</color> 
+    
+    <color name="bg_withdraw_balance">#CA80ED</color> 
+    <color name="text_withdraw_balance">#000000</color>
 </resources>

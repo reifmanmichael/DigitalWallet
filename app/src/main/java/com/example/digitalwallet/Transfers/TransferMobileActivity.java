@@ -7,7 +7,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -23,10 +25,13 @@ import androidx.core.content.ContextCompat;
 import com.example.digitalwallet.MainActivity;
 import com.example.digitalwallet.Model.User;
 import com.example.digitalwallet.R;
+import com.example.digitalwallet.Utils.ProfileUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 public class TransferMobileActivity extends AppCompatActivity {
@@ -58,7 +63,6 @@ public class TransferMobileActivity extends AppCompatActivity {
         tvResultName = findViewById(R.id.tvResultName);
         progressBar = findViewById(R.id.progressBar);
 
-        // Navigation
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnClose).setOnClickListener(v -> {
             Intent intent = new Intent(this, MainActivity.class);
@@ -66,7 +70,6 @@ public class TransferMobileActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Continue Logic
         btnContinue.setOnClickListener(v -> {
             if (foundUser != null) {
                 Intent intent = new Intent(this, TransferAmountActivity.class);
@@ -77,76 +80,103 @@ public class TransferMobileActivity extends AppCompatActivity {
             }
         });
 
-        // Input Listener with Debounce (Wait 500ms after typing stops)
         etPhone.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Reset State on type
                 foundUser = null;
                 setContinueActive(false);
                 layoutUserResult.setVisibility(View.GONE);
-                progressBar.setVisibility(View.GONE);
-
-                // Cancel previous search
+                
                 if (searchRunnable != null) searchHandler.removeCallbacks(searchRunnable);
             }
 
             @Override public void afterTextChanged(Editable s) {
-                String phone = s.toString().trim();
-                if (phone.length() >= 9) { // Minimal realistic length
+                final String phone = s.toString().trim();
+                if (phone.length() >= 9) {
                     progressBar.setVisibility(View.VISIBLE);
-                    searchRunnable = () -> searchUser(phone);
-                    searchHandler.postDelayed(searchRunnable, 600); // Wait 0.6s
+                    searchRunnable = () -> performSearch(phone);
+                    searchHandler.postDelayed(searchRunnable, 500);
+                } else {
+                    progressBar.setVisibility(View.GONE);
                 }
             }
         });
     }
 
-    private void searchUser(String phone) {
-        FirebaseDatabase.getInstance().getReference("Users")
-                .orderByChild("phone")
-                .equalTo(phone)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        progressBar.setVisibility(View.GONE);
-                        if (snapshot.exists()) {
-                            // User Found
-                            for (DataSnapshot child : snapshot.getChildren()) {
-                                User user = child.getValue(User.class);
-                                if (user != null) {
-                                    if (user.uid == null) user.uid = child.getKey();
-                                    
-                                    // SECURITY: Cannot send/request to yourself
-                                    if (user.uid != null && user.uid.equals(myUid)) {
-                                        Toast.makeText(TransferMobileActivity.this, "You cannot transfer to yourself", Toast.LENGTH_SHORT).show();
-                                        return;
-                                    }
-                                    
-                                    foundUser = user;
-                                    showFoundUser(foundUser);
-                                    return;
+    private void performSearch(final String phone) {
+        final String cleanPhone = phone.replaceAll("[^0-9]", "");
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("Users");
+        
+        usersRef.orderByChild("phone").equalTo(cleanPhone).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    handleSearchResults(snapshot);
+                } else {
+                    String noZero = cleanPhone.startsWith("0") ? cleanPhone.substring(1) : cleanPhone;
+                    try {
+                        long phoneNum = Long.parseLong(noZero);
+                        usersRef.orderByChild("phone").equalTo(phoneNum).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot2) {
+                                if (snapshot2.exists()) {
+                                    handleSearchResults(snapshot2);
+                                } else {
+                                    // Try string without zero
+                                    usersRef.orderByChild("phone").equalTo(noZero).addListenerForSingleValueEvent(new SearchResultListener());
                                 }
                             }
-                        }
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError error) {
+                            @Override public void onCancelled(@NonNull DatabaseError error) { progressBar.setVisibility(View.GONE); }
+                        });
+                    } catch (Exception e) {
                         progressBar.setVisibility(View.GONE);
                     }
-                });
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {
+                progressBar.setVisibility(View.GONE);
+                if (error.getMessage().contains("Permission denied")) {
+                    Toast.makeText(TransferMobileActivity.this, "Security Rules Blocked Search.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private class SearchResultListener implements ValueEventListener {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot snapshot) {
+            handleSearchResults(snapshot);
+        }
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+            progressBar.setVisibility(View.GONE);
+        }
+    }
+
+    private void handleSearchResults(DataSnapshot snapshot) {
+        progressBar.setVisibility(View.GONE);
+        for (DataSnapshot child : snapshot.getChildren()) {
+            User user = child.getValue(User.class);
+            if (user != null) {
+                if (user.uid == null) user.uid = child.getKey();
+                if (user.uid != null && user.uid.equals(myUid)) {
+                    Toast.makeText(this, "Cannot transfer to yourself", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                foundUser = user;
+                showFoundUser(foundUser);
+                return;
+            }
+        }
     }
 
     private void showFoundUser(User user) {
         layoutUserResult.setVisibility(View.VISIBLE);
         tvResultName.setText(user.displayName);
 
-        // Color Logic
-        ImageView bg = findViewById(R.id.imgResultBg);
-        String color = user.profileColor != null ? user.profileColor : "#E5E5EA";
-        try {
-            bg.setColorFilter(android.graphics.Color.parseColor(color));
-        } catch (Exception e) {
-            bg.setColorFilter(android.graphics.Color.GRAY);
+        View profileContainer = findViewById(R.id.layoutProfileContainer);
+        if (profileContainer != null) {
+            ProfileUtils.setProfileInitial(profileContainer, user.displayName, user.profileColor);
         }
 
         setContinueActive(true);
@@ -154,11 +184,13 @@ public class TransferMobileActivity extends AppCompatActivity {
 
     private void setContinueActive(boolean active) {
         if (active) {
-            // Use Black for active
             btnContinue.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.btn_black_active)));
+            btnContinue.setEnabled(true);
+            btnContinue.setAlpha(1.0f);
         } else {
-            // Use Gray for inactive
             btnContinue.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.btn_black_inactive)));
+            btnContinue.setEnabled(false);
+            btnContinue.setAlpha(0.5f);
         }
     }
 }
