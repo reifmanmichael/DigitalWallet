@@ -41,7 +41,6 @@ public class PocketsFragment extends Fragment {
     private RecyclerView recyclerView;
     private View tvWantAnother, btnClosedPockets;
     private View cardAllPurpose, cardSavings;
-    private ImageButton btnMorePockets;
 
     private DatabaseReference mDatabase;
     private PocketAdapter adapter;
@@ -63,7 +62,6 @@ public class PocketsFragment extends Fragment {
         btnClosedPockets = view.findViewById(R.id.btnClosedPockets);
         cardAllPurpose = view.findViewById(R.id.cardAllPurpose);
         cardSavings = view.findViewById(R.id.cardSavings);
-        btnMorePockets = view.findViewById(R.id.btnMorePockets);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new PocketAdapter(activePockets);
@@ -84,33 +82,10 @@ public class PocketsFragment extends Fragment {
         });
 
         btnClosedPockets.setOnClickListener(v -> showClosedPocketsMenu());
-        if (btnMorePockets != null) {
-            btnMorePockets.setOnClickListener(v -> showPocketsMoreMenu());
-        }
 
         loadPockets();
 
         return view;
-    }
-
-    private void showPocketsMoreMenu() {
-        if (getContext() == null) return;
-
-        BottomSheetDialog dialog = new BottomSheetDialog(getContext());
-        View view = getLayoutInflater().inflate(R.layout.dialog_pockets_main_more, null);
-        dialog.setContentView(view);
-
-        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-        if (bottomSheet != null) {
-            bottomSheet.setBackgroundResource(android.R.color.transparent);
-        }
-
-        view.findViewById(R.id.btnMenuClosedPockets).setOnClickListener(v -> {
-            dialog.dismiss();
-            showClosedPocketsMenu();
-        });
-
-        dialog.show();
     }
 
     @Override

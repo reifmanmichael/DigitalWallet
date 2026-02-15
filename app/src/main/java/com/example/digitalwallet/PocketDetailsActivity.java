@@ -3,7 +3,6 @@ package com.example.digitalwallet;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -27,7 +26,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.digitalwallet.Model.Pocket;
 import com.example.digitalwallet.Model.Transaction;
 import com.example.digitalwallet.Utils.CustomPopup;
-import com.example.digitalwallet.Utils.ProfileUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -153,10 +151,10 @@ public class PocketDetailsActivity extends AppCompatActivity {
         
         if (currentPocket.isLocked) {
             tvLock.setText("Unlock Pocket");
-            imgLock.setImageResource(R.drawable.ic_lock);
+            imgLock.setColorFilter(Color.GRAY);
         } else {
             tvLock.setText("Lock Pocket");
-            imgLock.setImageResource(R.drawable.ic_lock);
+            imgLock.setColorFilter(ContextCompat.getColor(this, R.color.primary_blue));
         }
 
         view.findViewById(R.id.btnMenuLock).setOnClickListener(v -> {
@@ -207,7 +205,6 @@ public class PocketDetailsActivity extends AppCompatActivity {
         tvName.setVisibility(View.GONE);
         etName.setVisibility(View.VISIBLE);
         btnSaveName.setVisibility(View.VISIBLE);
-        btnSaveName.setImageResource(R.drawable.ic_check);
         etName.setText(tvName.getText().toString());
         etName.requestFocus();
         etName.setSelection(etName.getText().length());
