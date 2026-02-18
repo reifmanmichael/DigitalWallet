@@ -116,6 +116,8 @@ public class TransferReasonActivity extends AppCompatActivity {
         String txId = mDb.push().getKey();
         if (txId == null) txId = String.valueOf(timestamp);
 
+        String reason = etReason.getText().toString().trim();
+
         Map<String, Object> updates = new HashMap<>();
         String myColor = me.profileColor != null ? me.profileColor : "#E5E5EA";
         String recColor = recipient.profileColor != null ? recipient.profileColor : "#E5E5EA";
@@ -123,13 +125,13 @@ public class TransferReasonActivity extends AppCompatActivity {
         Transaction myTx, recTx;
         if ("request".equals(mode)) {
             // REQUEST: Initiator (me) is receiver, Target (recipient) is sender. No balance change yet.
-            myTx = new Transaction(txId, "received", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid);
-            recTx = new Transaction(txId, "sent", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid);
+            myTx = new Transaction(txId, "received", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid, reason);
+            recTx = new Transaction(txId, "sent", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid, reason);
         } else {
             // SEND: Initiator (me) is sender, Target (recipient) is receiver. 
             // REDUCE balance from initiator immediately (limbo).
-            myTx = new Transaction(txId, "sent", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid);
-            recTx = new Transaction(txId, "received", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid);
+            myTx = new Transaction(txId, "sent", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid, reason);
+            recTx = new Transaction(txId, "received", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid, reason);
             
             updates.put("Users/" + myUid + "/balance", me.balance - amount);
         }

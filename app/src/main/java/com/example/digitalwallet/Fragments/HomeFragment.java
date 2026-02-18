@@ -173,6 +173,7 @@ public class HomeFragment extends Fragment {
         TextView name = view.findViewById(R.id.tvTxName);
         TextView details = view.findViewById(R.id.tvTxDate);
         TextView amount = view.findViewById(R.id.tvTxAmount);
+        TextView description = view.findViewById(R.id.tvTxDescription);
         View profileContainer = view.findViewById(R.id.layoutProfileContainer);
         ImageView icon = view.findViewById(R.id.imgTxIcon);
         LinearLayout layoutActions = view.findViewById(R.id.layoutRequestActions);
@@ -190,6 +191,14 @@ public class HomeFragment extends Fragment {
 
         amount.setText("₪" + String.format(Locale.getDefault(), "%.2f", tx.amount));
         amount.setTextColor(ContextCompat.getColor(getContext(), R.color.amount_text));
+
+        // Show description if it exists
+        if (tx.description != null && !tx.description.isEmpty()) {
+            description.setVisibility(View.VISIBLE);
+            description.setText(tx.description);
+        } else {
+            description.setVisibility(View.GONE);
+        }
 
         ProfileUtils.setProfileInitial(profileContainer, tx.relatedUserName, tx.relatedUserColor);
 

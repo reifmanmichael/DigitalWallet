@@ -241,6 +241,14 @@ public class HistoryActivity extends AppCompatActivity {
             holder.amount.setText("₪" + String.format("%.2f", tx.amount));
             holder.amount.setTextColor(ContextCompat.getColor(HistoryActivity.this, R.color.amount_text));
 
+            // Show description if it exists
+            if (tx.description != null && !tx.description.isEmpty()) {
+                holder.description.setVisibility(View.VISIBLE);
+                holder.description.setText(tx.description);
+            } else {
+                holder.description.setVisibility(View.GONE);
+            }
+
             ProfileUtils.setProfileInitial(holder.profileContainer, tx.relatedUserName, tx.relatedUserColor);
 
             holder.icon.setColorFilter(ContextCompat.getColor(HistoryActivity.this, R.color.tx_arrow_color));
@@ -285,7 +293,7 @@ public class HistoryActivity extends AppCompatActivity {
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView name, details, amount;
+            TextView name, details, amount, description;
             View profileContainer, actions;
             TextView btnAccept, btnDecline;
             ImageView icon;
@@ -294,6 +302,7 @@ public class HistoryActivity extends AppCompatActivity {
                 name = v.findViewById(R.id.tvTxName);
                 details = v.findViewById(R.id.tvTxDate);
                 amount = v.findViewById(R.id.tvTxAmount);
+                description = v.findViewById(R.id.tvTxDescription);
                 profileContainer = v.findViewById(R.id.layoutProfileContainer);
                 icon = v.findViewById(R.id.imgTxIcon);
                 actions = v.findViewById(R.id.layoutRequestActions);

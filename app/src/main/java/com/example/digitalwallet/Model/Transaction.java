@@ -10,10 +10,11 @@ public class Transaction {
     public String relatedUserName;
     public String relatedUserColor;
     public String initiatorUid; // Who started the transaction
+    public String description; // Added description field
 
     public Transaction() {}
 
-    public Transaction(String id, String type, String status, double amount, long timestamp, String relatedUserUid, String relatedUserName, String relatedUserColor, String initiatorUid) {
+    public Transaction(String id, String type, String status, double amount, long timestamp, String relatedUserUid, String relatedUserName, String relatedUserColor, String initiatorUid, String description) {
         this.id = id;
         this.type = type;
         this.status = status;
@@ -23,5 +24,6 @@ public class Transaction {
         this.relatedUserName = relatedUserName;
         this.relatedUserColor = relatedUserColor;
         this.initiatorUid = initiatorUid;
+        this.description = description;
     }
 }

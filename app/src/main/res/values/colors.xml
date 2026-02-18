@@ -11,6 +11,7 @@
     <color name="input_bg">#F2F2F7</color>
     <color name="text_black">#000000</color>
     <color name="text_gray">#8E8E93</color>
+    <color name="text_gray_dark">#48484A</color>
     <color name="text_light">#FFFFFF</color>
     
     <color name="amount_text">#000000</color>

@@ -9,6 +9,7 @@
     <!-- Text Colors -->
     <color name="text_black">#FFFFFF</color>
     <color name="text_gray">#DADAE4</color>
+    <color name="text_gray_dark">#EBEBF5</color>
     <color name="text_light">#FFFFFF</color>
     
     <color name="amount_text">#D1D1D6</color>
