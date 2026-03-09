@@ -1,6 +1,5 @@
 package com.example.digitalwallet;
 
-import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -9,10 +8,9 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
-import android.view.MotionEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -22,8 +20,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.digitalwallet.Model.Pocket;
+import com.example.digitalwallet.Model.Transaction;
 import com.example.digitalwallet.Utils.CustomPopup;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,6 +34,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
 public class PocketDetailsActivity extends AppCompatActivity {
 
     private String pocketId;
@@ -40,15 +48,15 @@ public class PocketDetailsActivity extends AppCompatActivity {
     private Pocket currentPocket;
     private double mainBalance = 0;
 
-    private TextView tvName, tvBalance;
+    private TextView tvName, tvBalance, tvWithdrawLabel, tvNoActivity;
     private EditText etName;
     private ImageButton btnSaveName;
     private ImageView imgIcon;
-    private View btnWithdraw, btnDeposit, btnMore, layoutMoreExpanded;
-    private ImageButton ibWithdraw, ibDeposit, ibMore, btnActionLock, btnActionEdit;
-    private View btnActionDelete;
-
-    private boolean isMoreExpanded = false;
+    private View btnWithdraw, btnDeposit, btnMore, layoutLockStatus;
+    private ImageButton ibWithdraw, ibDeposit, ibMore;
+    private RecyclerView recyclerActivity;
+    private List<Transaction> activityList = new ArrayList<>();
+    private ActivityAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,24 +77,28 @@ public class PocketDetailsActivity extends AppCompatActivity {
         btnSaveName = findViewById(R.id.btnSaveName);
         tvBalance = findViewById(R.id.tvPocketDetailBalance);
         imgIcon = findViewById(R.id.imgPocketDetailIcon);
+        layoutLockStatus = findViewById(R.id.layoutLockStatus);
+        tvNoActivity = findViewById(R.id.tvNoActivity);
         
         btnWithdraw = findViewById(R.id.btnWithdraw);
+        tvWithdrawLabel = findViewById(R.id.tvWithdrawLabel);
         btnDeposit = findViewById(R.id.btnDeposit);
         btnMore = findViewById(R.id.btnMore);
-        layoutMoreExpanded = findViewById(R.id.layoutMoreExpanded);
 
         ibWithdraw = findViewById(R.id.ibWithdraw);
         ibDeposit = findViewById(R.id.ibDeposit);
         ibMore = findViewById(R.id.ibMore);
-        
-        btnActionLock = findViewById(R.id.btnActionLock);
-        btnActionEdit = findViewById(R.id.btnActionEdit);
-        btnActionDelete = findViewById(R.id.btnActionDelete);
+
+        recyclerActivity = findViewById(R.id.recyclerPocketActivity);
+        recyclerActivity.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new ActivityAdapter(activityList);
+        recyclerActivity.setAdapter(adapter);
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         loadPocketData();
         loadMainBalance();
+        loadPocketActivity();
 
         btnDeposit.setOnClickListener(v -> {
             Intent intent = new Intent(this, PocketTransferActivity.class);
@@ -98,7 +110,7 @@ public class PocketDetailsActivity extends AppCompatActivity {
 
         btnWithdraw.setOnClickListener(v -> {
             if (currentPocket != null && currentPocket.isLocked) {
-                CustomPopup.show(this, "Locked", "This pocket is locked!");
+                CustomPopup.show(this, "Locked", "This pocket is locked and cannot be withdrawn from.");
                 return;
             }
             Intent intent = new Intent(this, PocketTransferActivity.class);
@@ -108,25 +120,8 @@ public class PocketDetailsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        ibMore.setOnClickListener(v -> toggleMoreMenu());
+        btnMore.setOnClickListener(v -> showMoreMenu());
         
-        btnActionLock.setOnClickListener(v -> {
-            if (currentPocket != null) {
-                mUserRef.child("pockets").child(pocketId).child("isLocked").setValue(!currentPocket.isLocked);
-                toggleMoreMenu();
-            }
-        });
-        
-        btnActionEdit.setOnClickListener(v -> {
-            toggleMoreMenu();
-            enableEditMode();
-        });
-        
-        btnActionDelete.setOnClickListener(v -> {
-            toggleMoreMenu();
-            showCustomDeleteDialog();
-        });
-
         btnSaveName.setOnClickListener(v -> saveNewName());
 
         etName.addTextChangedListener(new TextWatcher() {
@@ -138,11 +133,78 @@ public class PocketDetailsActivity extends AppCompatActivity {
         });
     }
 
+    private void showMoreMenu() {
+        if (currentPocket == null || currentPocket.isClosed) return;
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_pocket_more, null);
+        dialog.setContentView(view);
+
+        // Make background transparent to show rounded corners from XML
+        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        if (bottomSheet != null) {
+            bottomSheet.setBackgroundResource(android.R.color.transparent);
+        }
+
+        TextView tvLock = view.findViewById(R.id.tvLockLabel);
+        ImageView imgLock = view.findViewById(R.id.imgLockIcon);
+        
+        if (currentPocket.isLocked) {
+            tvLock.setText("Unlock Pocket");
+            imgLock.setColorFilter(Color.GRAY);
+        } else {
+            tvLock.setText("Lock Pocket");
+            imgLock.setColorFilter(ContextCompat.getColor(this, R.color.primary_blue));
+        }
+
+        view.findViewById(R.id.btnMenuLock).setOnClickListener(v -> {
+            mUserRef.child("pockets").child(pocketId).child("isLocked").setValue(!currentPocket.isLocked);
+            dialog.dismiss();
+        });
+
+        view.findViewById(R.id.btnMenuEdit).setOnClickListener(v -> {
+            dialog.dismiss();
+            enableEditMode();
+        });
+
+        view.findViewById(R.id.btnMenuDelete).setOnClickListener(v -> {
+            dialog.dismiss();
+            showCustomDeleteDialog();
+        });
+
+        dialog.show();
+    }
+
+    private void loadPocketActivity() {
+        mUserRef.child("pockets").child(pocketId).child("activity")
+                .orderByChild("timestamp")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        activityList.clear();
+                        for (DataSnapshot data : snapshot.getChildren()) {
+                            Transaction tx = data.getValue(Transaction.class);
+                            if (tx != null) activityList.add(tx);
+                        }
+                        Collections.reverse(activityList);
+                        adapter.notifyDataSetChanged();
+                        
+                        if (activityList.isEmpty()) {
+                            tvNoActivity.setVisibility(View.VISIBLE);
+                            recyclerActivity.setVisibility(View.GONE);
+                        } else {
+                            tvNoActivity.setVisibility(View.GONE);
+                            recyclerActivity.setVisibility(View.VISIBLE);
+                        }
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
+
     private void enableEditMode() {
         tvName.setVisibility(View.GONE);
         etName.setVisibility(View.VISIBLE);
         btnSaveName.setVisibility(View.VISIBLE);
-        btnSaveName.setImageResource(R.drawable.ic_check);
         etName.setText(tvName.getText().toString());
         etName.requestFocus();
         etName.setSelection(etName.getText().length());
@@ -203,60 +265,6 @@ public class PocketDetailsActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            if (isMoreExpanded) {
-                int[] location = new int[2];
-                layoutMoreExpanded.getLocationOnScreen(location);
-                float x = ev.getRawX();
-                float y = ev.getRawY();
-
-                if (x < location[0] || x > location[0] + layoutMoreExpanded.getWidth() ||
-                    y < location[1] || y > location[1] + layoutMoreExpanded.getHeight()) {
-                    toggleMoreMenu();
-                    return true;
-                }
-            }
-        }
-        return super.dispatchTouchEvent(ev);
-    }
-
-    private void toggleMoreMenu() {
-        if (currentPocket != null && currentPocket.isClosed) return;
-        
-        isMoreExpanded = !isMoreExpanded;
-        
-        int targetHeight = isMoreExpanded ? dpToPx(200) : dpToPx(64);
-        int startHeight = layoutMoreExpanded.getHeight();
-        
-        ValueAnimator animator = ValueAnimator.ofInt(startHeight, targetHeight);
-        animator.addUpdateListener(animation -> {
-            ViewGroup.LayoutParams params = layoutMoreExpanded.getLayoutParams();
-            params.height = (int) animation.getAnimatedValue();
-            layoutMoreExpanded.setLayoutParams(params);
-        });
-        
-        animator.setDuration(300);
-        animator.setInterpolator(new AccelerateDecelerateInterpolator());
-        animator.start();
-
-        float targetAlpha = isMoreExpanded ? 1f : 0f;
-        float dotsAlpha = isMoreExpanded ? 0f : 1f;
-
-        ibMore.animate().alpha(dotsAlpha).setDuration(200).start();
-        btnActionLock.animate().alpha(targetAlpha).setDuration(300).start();
-        btnActionEdit.animate().alpha(targetAlpha).setDuration(300).start();
-        btnActionDelete.animate().alpha(targetAlpha).setDuration(300).start();
-
-        ibMore.setClickable(!isMoreExpanded);
-    }
-
-    private int dpToPx(int dp) {
-        float density = getResources().getDisplayMetrics().density;
-        return Math.round((float) dp * density);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         if (MainActivity.pendingSuccessMessage != null) {
@@ -283,19 +291,19 @@ public class PocketDetailsActivity extends AppCompatActivity {
                     }
 
                     boolean isLocked = currentPocket.isLocked;
-                    btnActionLock.setImageTintList(ColorStateList.valueOf(isLocked ? 
-                            ContextCompat.getColor(PocketDetailsActivity.this, R.color.primary_blue) : 
-                            ContextCompat.getColor(PocketDetailsActivity.this, R.color.text_black)));
+                    layoutLockStatus.setVisibility(isLocked ? View.VISIBLE : View.GONE);
 
-                    updateUIForClosedState(currentPocket.isClosed);
+                    updateUIStates();
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
-    private void updateUIForClosedState(boolean isClosed) {
-        if (isClosed) {
+    private void updateUIStates() {
+        if (currentPocket == null) return;
+
+        if (currentPocket.isClosed) {
             btnWithdraw.setEnabled(false);
             btnDeposit.setEnabled(false);
             btnMore.setEnabled(false);
@@ -318,7 +326,22 @@ public class PocketDetailsActivity extends AppCompatActivity {
             btnWithdraw.setAlpha(0.5f);
             btnDeposit.setAlpha(0.5f);
             btnMore.setAlpha(0.5f);
+        } else if (currentPocket.isLocked) {
+            // Locked State
+            btnWithdraw.setAlpha(0.5f);
+            tvWithdrawLabel.setTextColor(ContextCompat.getColor(this, R.color.text_gray));
+            ibWithdraw.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.separator)));
+            ibWithdraw.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.text_gray)));
+            
+            // Deposit remains active
+            btnDeposit.setAlpha(1.0f);
+            ibDeposit.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.action_deposit)));
+            ibDeposit.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+            
+            btnMore.setAlpha(1.0f);
+            ibMore.setEnabled(true);
         } else {
+            // Normal Active State
             btnWithdraw.setEnabled(true);
             btnDeposit.setEnabled(true);
             btnMore.setEnabled(true);
@@ -326,6 +349,7 @@ public class PocketDetailsActivity extends AppCompatActivity {
 
             ibWithdraw.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primary_blue)));
             ibWithdraw.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+            tvWithdrawLabel.setTextColor(ContextCompat.getColor(this, R.color.text_black));
             
             ibDeposit.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.action_deposit)));
             ibDeposit.setImageTintList(ColorStateList.valueOf(Color.WHITE));
@@ -349,5 +373,57 @@ public class PocketDetailsActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    private class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.ViewHolder> {
+        List<Transaction> list;
+        ActivityAdapter(List<Transaction> list) { this.list = list; }
+
+        @NonNull @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_activity, parent, false);
+            return new ViewHolder(v);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Transaction tx = list.get(position);
+            holder.name.setText(tx.type.equals("sent") ? "Deposit" : "Withdrawal");
+            
+            SimpleDateFormat sdf = new SimpleDateFormat("d MMM, HH:mm", Locale.getDefault());
+            holder.date.setText(sdf.format(new Date(tx.timestamp)));
+            
+            holder.amount.setText("₪" + String.format("%.2f", tx.amount));
+            holder.amount.setTextColor(ContextCompat.getColor(PocketDetailsActivity.this, R.color.amount_text));
+
+            holder.profileContainer.setVisibility(View.GONE);
+            holder.icon.setVisibility(View.VISIBLE);
+            holder.icon.setColorFilter(Color.GRAY);
+            
+            if (tx.type.equals("sent")) {
+                holder.icon.setImageResource(R.drawable.ic_plus_deposit);
+                holder.icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E5F9E5")));
+            } else {
+                holder.icon.setImageResource(R.drawable.ic_arrow_send);
+                holder.icon.setRotation(180);
+                holder.icon.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFE5E5")));
+            }
+        }
+
+        @Override public int getItemCount() { return list.size(); }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            TextView name, date, amount;
+            ImageView icon;
+            View profileContainer;
+            ViewHolder(View v) {
+                super(v);
+                name = v.findViewById(R.id.tvTxName);
+                date = v.findViewById(R.id.tvTxDate);
+                amount = v.findViewById(R.id.tvTxAmount);
+                icon = v.findViewById(R.id.imgTxIcon);
+                profileContainer = v.findViewById(R.id.layoutProfileContainer);
+            }
+        }
     }
 }

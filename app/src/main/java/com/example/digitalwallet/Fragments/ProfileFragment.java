@@ -28,6 +28,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Locale;
+
 public class ProfileFragment extends Fragment {
 
     private View profileContainer;
@@ -78,7 +80,7 @@ public class ProfileFragment extends Fragment {
 
         String uid = mAuth.getCurrentUser().getUid();
         FirebaseDatabase.getInstance().getReference("Users").child(uid)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+                .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (!isAdded() || getContext() == null) return;
@@ -98,11 +100,16 @@ public class ProfileFragment extends Fragment {
     }
 
     private void showBankAccountsDialog() {
+        if (currentUser == null) return;
+
         Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_bank_accounts);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        TextView tvBankBalanceValue = dialog.findViewById(R.id.tvBankBalanceValue);
+        tvBankBalanceValue.setText(String.format(Locale.getDefault(), "₪ %.2f", currentUser.bankBalance));
 
         dialog.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
         dialog.show();

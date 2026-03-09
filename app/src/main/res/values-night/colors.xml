@@ -7,8 +7,9 @@
     <color name="input_bg">#3A3A3C</color>
     
     <!-- Text Colors -->
-    <color name="text_black">#E5E5EA</color>
-    <color name="text_gray">#8E8E93</color>
+    <color name="text_black">#FFFFFF</color>
+    <color name="text_gray">#DADAE4</color>
+    <color name="text_gray_dark">#EBEBF5</color>
     <color name="text_light">#FFFFFF</color>
     
     <color name="amount_text">#D1D1D6</color>
@@ -34,4 +35,15 @@
     <color name="pocket_illustration_bg">#2C2C2E</color>
     
     <color name="text_on_pocket_card">#000000</color>
+
+    <!-- Deposit and Withdraw Colors - Custom Theme Dark Mode -->
+    <color name="bg_deposit_funds">#3A5916</color> 
+    <color name="text_deposit_funds">#A8F250</color>
+    
+    <color name="bg_withdraw_balance">#3F1952</color> 
+    <color name="text_withdraw_balance">#CA80ED</color>
+
+    <!-- More Button Dark Mode -->
+    <color name="btn_more_bg">#3A3A3C</color> <!-- Light Gray -->
+    <color name="btn_more_icon">#FFFFFF</color> <!-- White dots -->
 </resources>

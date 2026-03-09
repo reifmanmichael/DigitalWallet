@@ -145,7 +145,8 @@ public class PocketTransferActivity extends AppCompatActivity {
                 pocketId, 
                 "Pocket: " + pocketName, 
                 "#8E8E93", // Neutral gray for pocket transactions
-                FirebaseAuth.getInstance().getUid());
+                FirebaseAuth.getInstance().getUid(),
+                "Internal Pocket Transfer (" + mode + ")");
 
         updates.put("transactions/" + txId, tx);
         

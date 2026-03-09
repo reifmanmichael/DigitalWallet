@@ -1,150 +1,210 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white_card"
+    android:background="@color/background_white"
     android:fillViewport="true">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="32dp">
+        android:padding="24dp">
 
         <TextView
+            android:id="@+id/tvLogo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Create Account"
-            android:textColor="@color/text_black"
-            android:textSize="28sp"
-            android:textStyle="bold"
             android:layout_marginTop="40dp"
-            android:layout_marginBottom="40dp"/>
+            android:fontFamily="sans-serif-black"
+            android:text="Join Us."
+            android:textColor="@color/text_black"
+            android:textSize="42sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <EditText
-            android:id="@+id/etName"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Full Name"
-            android:backgroundTint="@color/input_underline"
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etDisplayName"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Display Name"
-            android:backgroundTint="@color/input_underline"
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Email"
-            android:inputType="textEmailAddress"
-            android:backgroundTint="@color/input_underline"
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etPhone"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Phone Number"
-            android:inputType="phone"
-            android:backgroundTint="@color/input_underline"
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etAddress"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Address"
-            android:backgroundTint="@color/input_underline"
-            android:layout_marginBottom="24dp"/>
+        <TextView
+            android:id="@+id/tvWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Start your financial journey today.\nCreate an account below."
+            android:textColor="@color/text_gray"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvLogo" />
 
         <LinearLayout
-            android:id="@+id/containerType"
+            android:id="@+id/inputContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp">
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnTypePersonal"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/bg_rounded_button"
-                android:text="Personal"
-                android:textColor="@color/white_card"
-                android:layout_marginEnd="8dp"/>
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnTypeBusiness"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/bg_rounded_input"
-                android:text="Business"
-                android:textColor="@color/text_black"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Password"
-            android:inputType="textPassword"
-            android:backgroundTint="@color/input_underline"
-            android:layout_marginBottom="16dp"/>
-
-        <LinearLayout
-            android:id="@+id/layoutChecks"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
             android:orientation="vertical"
-            android:padding="8dp">
+            app:layout_constraintTop_toBottomOf="@id/tvWelcome">
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                <ImageView android:id="@+id/imgCheckLength" android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/checkbox_off_background" app:tint="@color/error_red"/>
-                <TextView android:id="@+id/checkLength" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" 8-20 Characters" android:textColor="@color/error_red" android:layout_marginStart="8dp"/>
+            <EditText
+                android:id="@+id/etName"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/edit_text_premium"
+                android:hint="Full Name"
+                android:inputType="textPersonName"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/text_black"
+                android:textColorHint="@color/text_gray"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/edit_text_premium"
+                android:hint="Email Address"
+                android:inputType="textEmailAddress"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/text_black"
+                android:textColorHint="@color/text_gray"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/etPhone"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/edit_text_premium"
+                android:hint="Phone Number"
+                android:inputType="phone"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/text_black"
+                android:textColorHint="@color/text_gray"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/edit_text_premium"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/text_black"
+                android:textColorHint="@color/text_gray"
+                android:textSize="16sp" />
+
+            <!-- Password Requirements -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="4dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:id="@+id/imgCheckLength"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_check_circle"
+                        app:tint="@color/text_gray" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="8-20 characters"
+                        android:textColor="@color/text_gray"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:id="@+id/imgCheckCase"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_check_circle"
+                        app:tint="@color/text_gray" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Upper and lowercase letters"
+                        android:textColor="@color/text_gray"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:id="@+id/imgCheckNumSym"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_check_circle"
+                        app:tint="@color/text_gray" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Contains a number or symbol"
+                        android:textColor="@color/text_gray"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
             </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                <ImageView android:id="@+id/imgCheckCase" android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/checkbox_off_background" app:tint="@color/error_red"/>
-                <TextView android:id="@+id/checkCase" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" Upper &amp; Lowercase" android:textColor="@color/error_red" android:layout_marginStart="8dp"/>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-                <ImageView android:id="@+id/imgCheckNumSym" android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/checkbox_off_background" app:tint="@color/error_red"/>
-                <TextView android:id="@+id/checkNumSym" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" Number or Symbol" android:textColor="@color/error_red" android:layout_marginStart="8dp"/>
-            </LinearLayout>
         </LinearLayout>
 
-        <androidx.appcompat.widget.AppCompatButton
+        <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="32dp"
-            android:background="@drawable/bg_rounded_button"
-            android:text="Create Wallet"
+            android:background="@drawable/btn_premium_primary"
+            android:text="Create Account"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/white_card"/>
+            app:layout_constraintTop_toBottomOf="@id/inputContainer" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/btnRegister"
+            app:layout_constraintEnd_toEndOf="@id/btnRegister"
+            app:layout_constraintStart_toStartOf="@id/btnRegister"
+            app:layout_constraintTop_toTopOf="@id/btnRegister" />
 
         <TextView
             android:id="@+id/tvLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Already have an account? Sign In"
-            android:textColor="@color/primary_blue"
-            android:textStyle="bold"
             android:layout_marginTop="24dp"
-            android:paddingBottom="40dp"/>
+            android:layout_marginBottom="24dp"
+            android:text="Already have an account? Sign In"
+            android:textColor="@color/text_gray"
+            android:textSize="15sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnRegister"
+            app:layout_constraintVertical_bias="1.0" />
 
-    </LinearLayout>
-</ScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

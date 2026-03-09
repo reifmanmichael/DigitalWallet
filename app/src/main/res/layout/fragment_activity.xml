@@ -33,15 +33,16 @@
             android:layout_marginTop="6dp"
             android:layout_marginBottom="40dp"/>
 
-        <!-- AI Insights Card -->
+        <!-- AI Insights Card (The "Brain") -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAiInsights"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="24dp"
             app:cardElevation="0.5dp"
             app:strokeWidth="0dp"
             app:cardBackgroundColor="@color/white_card"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -54,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="12dp">
 
                     <ImageView
                         android:layout_width="24dp"
@@ -63,23 +64,95 @@
                         app:tint="@color/primary_blue"/>
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="AI Insights"
+                        android:layout_weight="1"
+                        android:text="AI Financial Analyst"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_black"
                         android:layout_marginStart="12dp"/>
+
+                    <ProgressBar
+                        android:id="@+id/pbAiLoading"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:visibility="gone"/>
                 </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvAiInsights"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Analyzing your transaction patterns..."
+                    android:text="Analyzing patterns..."
                     android:textSize="15sp"
                     android:textColor="@color/text_black"
                     android:lineSpacingExtra="6dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- AI Proposal Instant Pop-up Suggestion -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAiProposal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="8dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/primary_blue"
+            app:cardBackgroundColor="#E6F2FF"
+            android:layout_marginBottom="32dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:id="@+id/tvProposalTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Optimization Plan"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary_blue"/>
+
+                <TextView
+                    android:id="@+id/tvProposalDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="AI suggests moving funds to a savings pocket."
+                    android:textSize="16sp"
+                    android:textColor="@color/text_black"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="4dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="20dp"
+                    android:gravity="end">
+
+                    <Button
+                        android:id="@+id/btnDenyProposal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dismiss"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:textColor="@color/text_gray"
+                        android:layout_marginEnd="8dp"/>
+
+                    <Button
+                        android:id="@+id/btnAcceptProposal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Accept &amp; Execute"
+                        android:backgroundTint="@color/primary_blue"
+                        android:textColor="@color/white"/>
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

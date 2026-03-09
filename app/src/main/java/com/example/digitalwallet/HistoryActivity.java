@@ -1,7 +1,6 @@
 package com.example.digitalwallet;
 
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -51,15 +50,20 @@ public class HistoryActivity extends AppCompatActivity {
     private String currentFilterType = "all";
     private String currentSearchQuery = "";
     private DatabaseReference mUserRef;
+    private DatabaseReference mUsersRef;
+    private String myUid;
+    private double myCurrentBalance = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid != null) {
-            mUserRef = FirebaseDatabase.getInstance().getReference("Users").child(uid);
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        mUsersRef = db.getReference("Users");
+        myUid = FirebaseAuth.getInstance().getUid();
+        if (myUid != null) {
+            mUserRef = mUsersRef.child(myUid);
         }
 
         etSearch = findViewById(R.id.etSearch);
@@ -87,7 +91,22 @@ public class HistoryActivity extends AppCompatActivity {
         btnSent.setOnClickListener(v -> updateFilterType("sent"));
         btnReceived.setOnClickListener(v -> updateFilterType("received"));
 
+        loadBalance();
         loadHistory();
+    }
+
+    private void loadBalance() {
+        if (mUserRef == null) return;
+        mUserRef.child("balance").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    myCurrentBalance = Double.parseDouble(snapshot.getValue().toString());
+                    adapter.notifyDataSetChanged();
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void updateFilterType(String type) {
@@ -139,29 +158,53 @@ public class HistoryActivity extends AppCompatActivity {
                 });
     }
 
-    private void handleAccept(Transaction tx) {
-        mUserRef.child("balance").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                double balance = snapshot.exists() ? Double.parseDouble(snapshot.getValue().toString()) : 0;
-                if (balance < tx.amount) {
-                    Toast.makeText(HistoryActivity.this, "Insufficient balance", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+    private void handleRequest(Transaction tx, boolean accept) {
+        final Map<String, Object> updates = new HashMap<>();
+        final String status = accept ? "completed" : "declined";
 
-                Map<String, Object> updates = new HashMap<>();
-                updates.put("balance", balance - tx.amount);
-                updates.put("transactions/" + tx.id + "/status", "completed");
-                
-                // Also update the sender's transaction and balance if needed (simplified here)
-                mUserRef.updateChildren(updates);
+        mUsersRef.child(myUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot mySnap) {
+                mUsersRef.child(tx.relatedUserUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot otherSnap) {
+                        if (!mySnap.exists() || !otherSnap.exists()) return;
+
+                        double myBal = Double.parseDouble(mySnap.child("balance").getValue().toString());
+                        double otherBal = Double.parseDouble(otherSnap.child("balance").getValue().toString());
+
+                        if (accept) {
+                            if ("sent".equals(tx.type)) {
+                                if (myBal < tx.amount) {
+                                    Toast.makeText(HistoryActivity.this, "Insufficient funds", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
+                                updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                            } else {
+                                updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
+                            }
+                        } else {
+                            if ("received".equals(tx.type)) {
+                                updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                            }
+                        }
+                        
+                        updates.put("Users/" + myUid + "/transactions/" + tx.id + "/status", status);
+                        updates.put("Users/" + tx.relatedUserUid + "/transactions/" + tx.id + "/status", status);
+
+                        mUsersRef.getParent().updateChildren(updates).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                String msg = status.equals("completed") ? "Transaction completed!" : "Transaction declined.";
+                                Toast.makeText(HistoryActivity.this, msg, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
-    }
-
-    private void handleDecline(Transaction tx) {
-        mUserRef.child("transactions").child(tx.id).child("status").setValue("declined");
     }
 
     class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
@@ -198,40 +241,68 @@ public class HistoryActivity extends AppCompatActivity {
             holder.amount.setText("₪" + String.format("%.2f", tx.amount));
             holder.amount.setTextColor(ContextCompat.getColor(HistoryActivity.this, R.color.amount_text));
 
+            // Show description if it exists
+            if (tx.description != null && !tx.description.isEmpty()) {
+                holder.description.setVisibility(View.VISIBLE);
+                holder.description.setText(tx.description);
+            } else {
+                holder.description.setVisibility(View.GONE);
+            }
+
             ProfileUtils.setProfileInitial(holder.profileContainer, tx.relatedUserName, tx.relatedUserColor);
 
             holder.icon.setColorFilter(ContextCompat.getColor(HistoryActivity.this, R.color.tx_arrow_color));
             if ("sent".equals(tx.type)) {
                 holder.icon.setImageResource(R.drawable.ic_arrow_send);
                 holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_sent)));
-                holder.actions.setVisibility(View.GONE);
             } else {
                 holder.icon.setImageResource(R.drawable.ic_arrow_request);
                 holder.icon.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(HistoryActivity.this, R.color.bg_tx_received)));
-                
-                // Show actions only for pending requests RECEIVED by the user
-                if ("pending".equals(tx.status)) {
-                    holder.actions.setVisibility(View.VISIBLE);
-                } else {
-                    holder.actions.setVisibility(View.GONE);
-                }
             }
 
-            holder.btnAccept.setOnClickListener(v -> handleAccept(tx));
-            holder.btnDecline.setOnClickListener(v -> handleDecline(tx));
+            if ("pending".equals(tx.status)) {
+                if (!myUid.equals(tx.initiatorUid)) {
+                    holder.actions.setVisibility(View.VISIBLE);
+                    
+                    if ("sent".equals(tx.type)) {
+                        holder.btnAccept.setText("Pay");
+                        boolean canPay = myCurrentBalance >= tx.amount;
+                        holder.btnAccept.setAlpha(canPay ? 1.0f : 0.3f);
+                    } else {
+                        holder.btnAccept.setText("Accept");
+                        holder.btnAccept.setAlpha(1.0f);
+                    }
+                } else {
+                    holder.actions.setVisibility(View.GONE);
+                    holder.details.setText(dateStr + " • Waiting...");
+                }
+            } else {
+                holder.actions.setVisibility(View.GONE);
+            }
+
+            holder.btnAccept.setOnClickListener(v -> {
+                if ("Pay".equals(holder.btnAccept.getText().toString()) && myCurrentBalance < tx.amount) {
+                    Toast.makeText(HistoryActivity.this, "Insufficient funds to pay", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                handleRequest(tx, true);
+            });
+            holder.btnDecline.setOnClickListener(v -> handleRequest(tx, false));
         }
 
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView name, details, amount;
-            View profileContainer, actions, btnAccept, btnDecline;
+            TextView name, details, amount, description;
+            View profileContainer, actions;
+            TextView btnAccept, btnDecline;
             ImageView icon;
             ViewHolder(View container, View v) {
                 super(container);
                 name = v.findViewById(R.id.tvTxName);
                 details = v.findViewById(R.id.tvTxDate);
                 amount = v.findViewById(R.id.tvTxAmount);
+                description = v.findViewById(R.id.tvTxDescription);
                 profileContainer = v.findViewById(R.id.layoutProfileContainer);
                 icon = v.findViewById(R.id.imgTxIcon);
                 actions = v.findViewById(R.id.layoutRequestActions);

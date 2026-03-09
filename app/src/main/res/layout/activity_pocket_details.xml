@@ -103,6 +103,35 @@
                     android:textColor="@color/text_black"
                     android:textSize="24sp"
                     android:layout_marginTop="4dp"/>
+
+                <!-- Locked Status Badge -->
+                <LinearLayout
+                    android:id="@+id/layoutLockStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_rounded_button"
+                    android:backgroundTint="#1A007AFF"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_lock"
+                        app:tint="@color/primary_blue"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LOCKED"
+                        android:textColor="@color/primary_blue"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.05"
+                        android:layout_marginStart="6dp"/>
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Action Buttons -->
@@ -119,7 +148,10 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center_horizontal"
-                    android:layout_marginEnd="20dp">
+                    android:layout_marginEnd="20dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?selectableItemBackgroundBorderless">
                     <ImageButton
                         android:id="@+id/ibWithdraw"
                         android:layout_width="64dp"
@@ -133,6 +165,7 @@
                         android:clickable="false"
                         android:focusable="false"/>
                     <TextView
+                        android:id="@+id/tvWithdrawLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Withdraw"
@@ -147,7 +180,10 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center_horizontal"
-                    android:layout_marginEnd="20dp">
+                    android:layout_marginEnd="20dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?selectableItemBackgroundBorderless">
                     <ImageButton
                         android:id="@+id/ibDeposit"
                         android:layout_width="64dp"
@@ -160,6 +196,7 @@
                         android:clickable="false"
                         android:focusable="false"/>
                     <TextView
+                        android:id="@+id/tvDepositLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Deposit"
@@ -173,78 +210,22 @@
                     android:layout_width="80dp"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:gravity="center_horizontal">
+                    android:gravity="center_horizontal"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?selectableItemBackgroundBorderless">
                     
-                    <FrameLayout
+                    <ImageButton
+                        android:id="@+id/ibMore"
                         android:layout_width="64dp"
-                        android:layout_height="wrap_content">
-                        
-                        <!-- Menu Pill (Dynamic height) -->
-                        <LinearLayout
-                            android:id="@+id/layoutMoreExpanded"
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
-                            android:orientation="vertical"
-                            android:gravity="center_horizontal"
-                            android:background="@drawable/bg_rounded_button"
-                            android:backgroundTint="@color/separator"
-                            android:padding="0dp">
-                            
-                            <!-- Lock Icon (Top) - Dots will morph into this -->
-                            <ImageButton
-                                android:id="@+id/btnActionLock"
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                android:background="?selectableItemBackgroundBorderless"
-                                android:src="@drawable/ic_lock"
-                                app:tint="@color/text_black"
-                                android:padding="20dp"
-                                android:scaleType="fitCenter"
-                                android:alpha="0"/>
-                                
-                            <ImageButton
-                                android:id="@+id/btnActionEdit"
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                android:background="?selectableItemBackgroundBorderless"
-                                android:src="@drawable/ic_edit"
-                                app:tint="@color/text_black"
-                                android:padding="20dp"
-                                android:scaleType="fitCenter"
-                                android:alpha="0"/>
-                                
-                            <FrameLayout
-                                android:id="@+id/btnActionDelete"
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                android:alpha="0">
-                                <View
-                                    android:layout_width="40dp"
-                                    android:layout_height="40dp"
-                                    android:layout_gravity="center"
-                                    android:background="@drawable/bg_circle_shape"
-                                    android:backgroundTint="#FFE5E5"/>
-                                <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_delete"
-                                    app:tint="@color/error_red"/>
-                            </FrameLayout>
-                        </LinearLayout>
-
-                        <!-- Morphing layer (The dots) -->
-                        <ImageButton
-                            android:id="@+id/ibMore"
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
-                            android:background="@android:color/transparent"
-                            android:src="@drawable/ic_more"
-                            android:padding="18dp"
-                            android:scaleType="fitCenter"
-                            android:clickable="true"
-                            android:focusable="true"/>
-                    </FrameLayout>
+                        android:layout_height="64dp"
+                        android:background="@drawable/bg_circle_shape"
+                        android:backgroundTint="@color/separator"
+                        android:src="@drawable/ic_more"
+                        android:padding="18dp"
+                        android:scaleType="fitCenter"
+                        android:clickable="false"
+                        android:focusable="false"/>
                     
                     <TextView
                         android:id="@+id/tvMoreLabel"

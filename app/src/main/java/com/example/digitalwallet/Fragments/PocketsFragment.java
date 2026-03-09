@@ -1,10 +1,13 @@
 package com.example.digitalwallet.Fragments;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -158,7 +161,6 @@ public class PocketsFragment extends Fragment {
     private void showSuccessPopup() {
         if (getContext() == null || activePockets.isEmpty()) return;
         
-        // Get the most recently added pocket (last in the list)
         Pocket latestPocket = activePockets.get(activePockets.size() - 1);
         
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
@@ -205,12 +207,13 @@ public class PocketsFragment extends Fragment {
                 if (resId != 0) holder.icon.setImageResource(resId);
             }
 
-            // --- FIX: Apply Yellow Tint to Savings Pockets ---
             if ("Savings".equals(p.type)) {
                 holder.cardView.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.pocket_savings_tint));
             } else {
                 holder.cardView.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.white_card));
             }
+
+            holder.imgLockBadge.setVisibility(p.isLocked ? View.VISIBLE : View.GONE);
 
             holder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(getActivity(), PocketDetailsActivity.class);
@@ -223,7 +226,7 @@ public class PocketsFragment extends Fragment {
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView name, amount, type;
-            ImageView icon;
+            ImageView icon, imgLockBadge;
             MaterialCardView cardView;
             ViewHolder(View v) {
                 super(v);
@@ -231,6 +234,7 @@ public class PocketsFragment extends Fragment {
                 amount = v.findViewById(R.id.tvPocketAmount);
                 type = v.findViewById(R.id.tvPocketType);
                 icon = v.findViewById(R.id.imgPocketIcon);
+                imgLockBadge = v.findViewById(R.id.imgLockBadge);
                 cardView = v.findViewById(R.id.pocketCardView);
             }
         }

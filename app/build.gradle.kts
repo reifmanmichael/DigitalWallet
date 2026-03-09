@@ -5,9 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.digitalwallet"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.digitalwallet"
@@ -43,23 +41,37 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-        implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.core:core-ktx:1.17.0")
 
-        // Firebase
-        implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
-        implementation("com.google.firebase:firebase-auth")
-        implementation("com.google.firebase:firebase-database")
+    // BOM
+    implementation(platform(libs.firebase.bom))
 
-        // Charting
-        implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
-        // UI Utilities
-        implementation("de.hdodenhof:circleimageview:3.1.0")
-        implementation("com.airbnb.android:lottie:6.7.1")
+// Firebase (ללא גרסאות)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.ai)
+
+
+// One-shot (Guava ListenableFuture)
+    implementation(libs.guava)
+
+
+// Streaming (Reactive Streams Publisher)
+    implementation(libs.reactive.streams)
+    // Charting
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // UI Utilities
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.airbnb.android:lottie:6.7.1")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0") // For Real Currency API
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
 
+    // Gemini AI
+    implementation(libs.generativeai)
+    implementation(libs.guava)
 }

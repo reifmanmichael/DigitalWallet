@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,16 +49,11 @@ public class TransferReasonActivity extends AppCompatActivity {
         amountStr = getIntent().getStringExtra("amount");
         mode = getIntent().getStringExtra("mode"); 
 
-        // UI Setup
         TextView headerInfo = findViewById(R.id.tvHeaderInfo);
         headerInfo.setText(recipientName + " • ₪" + amountStr);
 
         btnTransfer = findViewById(R.id.btnTransferFinal);
-        if ("request".equals(mode)) {
-            btnTransfer.setText("Request from " + recipientName);
-        } else {
-            btnTransfer.setText("Transfer to " + recipientName);
-        }
+        btnTransfer.setText(("request".equals(mode) ? "Request from " : "Transfer to ") + recipientName);
 
         etReason = findViewById(R.id.etReason);
 
@@ -81,14 +77,14 @@ public class TransferReasonActivity extends AppCompatActivity {
             return;
         }
 
-        mDb.addListenerForSingleValueEvent(new ValueEventListener() {
+        mDb.child("Users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot rootSnap) {
-                DataSnapshot mySnap = rootSnap.child("Users").child(myUid);
-                DataSnapshot recSnap = rootSnap.child("Users").child(recipientUid);
+            public void onDataChange(@NonNull DataSnapshot usersSnap) {
+                DataSnapshot mySnap = usersSnap.child(myUid);
+                DataSnapshot recSnap = usersSnap.child(recipientUid);
 
                 if (!mySnap.exists() || !recSnap.exists()) {
-                    CustomPopup.show(TransferReasonActivity.this, "Error", "User not found");
+                    CustomPopup.show(TransferReasonActivity.this, "Error", "User details not found");
                     resetButton();
                     return;
                 }
@@ -97,7 +93,14 @@ public class TransferReasonActivity extends AppCompatActivity {
                 User recipient = recSnap.getValue(User.class);
 
                 if (me == null || recipient == null) {
-                    CustomPopup.show(TransferReasonActivity.this, "Error", "Error retrieving user data");
+                    CustomPopup.show(TransferReasonActivity.this, "Error", "Error parsing user data");
+                    resetButton();
+                    return;
+                }
+
+                // Check balance if sending
+                if (!"request".equals(mode) && me.balance < amount) {
+                    CustomPopup.show(TransferReasonActivity.this, "Insufficient Funds", "You don't have enough balance to complete this transfer.");
                     resetButton();
                     return;
                 }
@@ -113,24 +116,28 @@ public class TransferReasonActivity extends AppCompatActivity {
         String txId = mDb.push().getKey();
         if (txId == null) txId = String.valueOf(timestamp);
 
+        String reason = etReason.getText().toString().trim();
+
         Map<String, Object> updates = new HashMap<>();
-        
         String myColor = me.profileColor != null ? me.profileColor : "#E5E5EA";
         String recColor = recipient.profileColor != null ? recipient.profileColor : "#E5E5EA";
 
         Transaction myTx, recTx;
-
         if ("request".equals(mode)) {
-            myTx = new Transaction(txId, "received", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid);
-            recTx = new Transaction(txId, "sent", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid);
+            // REQUEST: Initiator (me) is receiver, Target (recipient) is sender. No balance change yet.
+            myTx = new Transaction(txId, "received", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid, reason);
+            recTx = new Transaction(txId, "sent", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid, reason);
         } else {
-            myTx = new Transaction(txId, "sent", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid);
-            recTx = new Transaction(txId, "received", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid);
+            // SEND: Initiator (me) is sender, Target (recipient) is receiver. 
+            // REDUCE balance from initiator immediately (limbo).
+            myTx = new Transaction(txId, "sent", "pending", amount, timestamp, recipientUid, recipient.displayName, recColor, myUid, reason);
+            recTx = new Transaction(txId, "received", "pending", amount, timestamp, myUid, me.displayName, myColor, myUid, reason);
+            
+            updates.put("Users/" + myUid + "/balance", me.balance - amount);
         }
 
         updates.put("Users/" + myUid + "/transactions/" + txId, myTx);
         updates.put("Users/" + recipientUid + "/transactions/" + txId, recTx);
-
         updates.put("Users/" + myUid + "/saved_contacts/" + recipientUid, true);
         updates.put("Users/" + recipientUid + "/saved_contacts/" + myUid, true);
 
@@ -149,14 +156,10 @@ public class TransferReasonActivity extends AppCompatActivity {
 
         mDb.updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                String action = "request".equals(mode) ? "Requested" : "Sent a transfer of";
-                String target = "request".equals(mode) ? "from " + recipientName + "." : "to " + recipientName + ".";
-                String message = action + " ₪" + amountStr + " " + target;
-                
-                MainActivity.pendingSuccessMessage = message;
+                MainActivity.pendingSuccessMessage = ("request".equals(mode) ? "Requested ₪" : "Sent ₪") + amountStr;
                 navigateHome();
             } else {
-                CustomPopup.show(TransferReasonActivity.this, "Error", "Failed to initiate transaction");
+                CustomPopup.show(TransferReasonActivity.this, "Error", "Failed to initiate transaction.");
                 resetButton();
             }
         });
@@ -165,11 +168,7 @@ public class TransferReasonActivity extends AppCompatActivity {
     private void resetButton() {
         btnTransfer.setEnabled(true);
         btnTransfer.setAlpha(1f);
-        if ("request".equals(mode)) {
-            btnTransfer.setText("Request from " + recipientName);
-        } else {
-            btnTransfer.setText("Transfer to " + recipientName);
-        }
+        btnTransfer.setText(("request".equals(mode) ? "Request from " : "Transfer to ") + recipientName);
     }
 
     private void navigateHome() {

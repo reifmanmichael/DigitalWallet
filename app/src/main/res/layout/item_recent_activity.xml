@@ -80,6 +80,15 @@
                 android:textColor="@color/text_gray"
                 android:textSize="13sp" />
 
+            <TextView
+                android:id="@+id/tvTxDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:visibility="gone"
+                android:textColor="@color/text_gray_dark"
+                android:textSize="14sp" />
+
         </LinearLayout>
     </LinearLayout>
 
