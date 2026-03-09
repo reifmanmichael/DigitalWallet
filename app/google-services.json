@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "949557874275",
+    "project_id": "digitalwallet-12eb0",
+    "storage_bucket": "digitalwallet-12eb0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:949557874275:android:e64b711ab8a68fecf73256",
+        "android_client_info": {
+          "package_name": "com.example.digitalwallet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9gijrs_lZJa2UiO9mJAA6guL2mGxvaAs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
