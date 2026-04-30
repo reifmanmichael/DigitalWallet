@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/white_card"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/separator">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tvMarkerDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date"
+            android:textSize="11sp"
+            android:textColor="@color/text_gray"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvMarkerValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₪0.00"
+            android:textSize="14sp"
+            android:textColor="@color/text_black"
+            android:textStyle="bold"
+            android:layout_marginTop="2dp"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
