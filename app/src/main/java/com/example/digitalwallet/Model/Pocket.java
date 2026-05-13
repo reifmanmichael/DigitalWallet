@@ -4,15 +4,11 @@ public class Pocket {
     public String id;
     public String name;
     public double amount;
-    public String type; // "All-purpose" or "Savings"
+    public String type;
     public boolean isLocked;
-    public boolean isClosed; // New field
+    public boolean isClosed;
     public String iconName;
-    
-    // Savings-specific fields
-    public double interestRate;
-    public long lockEndDate;
-    public double initialDeposit;
+
 
     public Pocket() {}
 

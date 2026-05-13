@@ -41,8 +41,8 @@ public class HistoryActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private HistoryAdapter adapter;
-    private List<Transaction> fullList = new ArrayList<>();
-    private List<Transaction> filteredList = new ArrayList<>();
+    private final List<Transaction> fullList = new ArrayList<>();
+    private final List<Transaction> filteredList = new ArrayList<>();
 
     private EditText etSearch;
     private TextView btnAll, btnSent, btnReceived;
@@ -208,7 +208,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
-        List<Transaction> list;
+        final List<Transaction> list;
         HistoryAdapter(List<Transaction> list) { this.list = list; }
 
         @NonNull @Override
@@ -293,10 +293,15 @@ public class HistoryActivity extends AppCompatActivity {
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView name, details, amount, description;
-            View profileContainer, actions;
-            TextView btnAccept, btnDecline;
-            ImageView icon;
+            final TextView name;
+            final TextView details;
+            final TextView amount;
+            final TextView description;
+            final View profileContainer;
+            final View actions;
+            final TextView btnAccept;
+            final TextView btnDecline;
+            final ImageView icon;
             ViewHolder(View container, View v) {
                 super(container);
                 name = v.findViewById(R.id.tvTxName);

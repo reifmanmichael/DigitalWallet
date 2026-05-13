@@ -35,8 +35,8 @@ public class RequestActivity extends AppCompatActivity {
     private EditText etSearch;
     private RecyclerView recyclerView;
     private ContactAdapter adapter;
-    private List<User> savedContacts = new ArrayList<>();
-    private List<User> filteredList = new ArrayList<>();
+    private final List<User> savedContacts = new ArrayList<>();
+    private final List<User> filteredList = new ArrayList<>();
     private String myUid;
 
     @Override
@@ -151,7 +151,7 @@ public class RequestActivity extends AppCompatActivity {
     }
 
     class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHolder> {
-        List<User> list;
+        final List<User> list;
         ContactAdapter(List<User> list) { this.list = list; }
 
         @NonNull @Override
@@ -179,8 +179,9 @@ public class RequestActivity extends AppCompatActivity {
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            View profileContainer;
-            TextView name, detail;
+            final View profileContainer;
+            final TextView name;
+            final TextView detail;
             ViewHolder(View v) {
                 super(v);
                 name = v.findViewById(R.id.tvContactName);

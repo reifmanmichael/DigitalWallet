@@ -1,21 +1,16 @@
 package com.example.digitalwallet;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,8 +35,8 @@ public class SendActivity extends AppCompatActivity {
     private EditText etSearch;
     private RecyclerView recyclerView;
     private ContactAdapter adapter;
-    private List<User> savedContacts = new ArrayList<>();
-    private List<User> filteredList = new ArrayList<>();
+    private final List<User> savedContacts = new ArrayList<>();
+    private final List<User> filteredList = new ArrayList<>();
     private String myUid;
 
     @Override
@@ -161,7 +156,7 @@ public class SendActivity extends AppCompatActivity {
     }
 
     class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHolder> {
-        List<User> list;
+        final List<User> list;
         ContactAdapter(List<User> list) { this.list = list; }
 
         @NonNull @Override
@@ -188,8 +183,9 @@ public class SendActivity extends AppCompatActivity {
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            View profileContainer;
-            TextView name, detail;
+            final View profileContainer;
+            final TextView name;
+            final TextView detail;
             ViewHolder(View v) {
                 super(v);
                 name = v.findViewById(R.id.tvContactName);

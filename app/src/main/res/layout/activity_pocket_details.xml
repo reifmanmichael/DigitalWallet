@@ -196,7 +196,6 @@
                         android:clickable="false"
                         android:focusable="false"/>
                     <TextView
-                        android:id="@+id/tvDepositLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Deposit"
@@ -228,7 +227,6 @@
                         android:focusable="false"/>
                     
                     <TextView
-                        android:id="@+id/tvMoreLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="More"

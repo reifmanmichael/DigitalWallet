@@ -2,17 +2,13 @@ package com.example.digitalwallet.Transfers;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,7 +27,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 public class TransferMobileActivity extends AppCompatActivity {
@@ -43,7 +38,7 @@ public class TransferMobileActivity extends AppCompatActivity {
     private String mode;
     private String myUid;
 
-    private Handler searchHandler = new Handler(Looper.getMainLooper());
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
     private User foundUser = null;
 

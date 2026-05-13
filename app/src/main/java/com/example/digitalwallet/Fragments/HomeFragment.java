@@ -1,10 +1,7 @@
 package com.example.digitalwallet.Fragments;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,7 +33,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
@@ -140,8 +136,7 @@ public class HomeFragment extends Fragment {
         View view = getLayoutInflater().inflate(R.layout.dialog_home_more, null);
         dialog.setContentView(view);
 
-        // Make background transparent to show rounded corners from XML
-        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        View bottomSheet = (View) view.getParent();
         if (bottomSheet != null) {
             bottomSheet.setBackgroundResource(android.R.color.transparent);
         }
@@ -152,6 +147,116 @@ public class HomeFragment extends Fragment {
         });
 
         dialog.show();
+    }
+
+    private void loadRecentActivity() {
+        if (mUserRef == null) return;
+
+        mUserRef.child("transactions").orderByChild("timestamp").limitToLast(30)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        recentTransactions.clear();
+                        for (DataSnapshot data : snapshot.getChildren()) {
+                            Transaction tx = data.getValue(Transaction.class);
+                            if (tx != null) {
+
+                                if ("AI".equalsIgnoreCase(tx.relatedUserName) || "Bank".equalsIgnoreCase(tx.relatedUserName)) {
+                                    continue;
+                                }
+                                tx.id = data.getKey();
+                                recentTransactions.add(tx);
+                            }
+                        }
+                        Collections.reverse(recentTransactions);
+
+                        if (recentTransactions.size() > 10) {
+                            List<Transaction> limited = new ArrayList<>(recentTransactions.subList(0, 10));
+                            recentTransactions.clear();
+                            recentTransactions.addAll(limited);
+                        }
+                        
+                        renderTransactions();
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
+
+    private void loadMostActive() {
+        if (mUserRef == null) return;
+        mUserRef.child("transactions").orderByChild("timestamp").limitToLast(100)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Map<String, Integer> counts = new HashMap<>();
+                        Map<String, Transaction> lastTx = new HashMap<>();
+                        for (DataSnapshot data : snapshot.getChildren()) {
+                            Transaction tx = data.getValue(Transaction.class);
+                            if (tx != null && tx.relatedUserUid != null) {
+
+                                if ("AI".equalsIgnoreCase(tx.relatedUserName) || "Bank".equalsIgnoreCase(tx.relatedUserName)) {
+                                    continue;
+                                }
+                                counts.put(tx.relatedUserUid, counts.getOrDefault(tx.relatedUserUid, 0) + 1);
+                                lastTx.put(tx.relatedUserUid, tx);
+                            }
+                        }
+                        
+                        List<String> uids = new ArrayList<>(counts.keySet());
+                        Collections.sort(uids, (a, b) -> counts.get(b).compareTo(counts.get(a)));
+                        
+                        updateMostActiveUI(uids, lastTx);
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
+
+    private void updateMostActiveUI(List<String> uids, Map<String, Transaction> lastTx) {
+        if (!isAdded() || getContext() == null) return;
+        mostActiveContainer.removeAllViews();
+        displayedMostActiveUids.clear();
+
+        int count = 0;
+        for (String uid : uids) {
+            if (count >= 5) break;
+            Transaction tx = lastTx.get(uid);
+            if (tx != null) {
+                addMostActiveView(tx);
+                displayedMostActiveUids.add(uid);
+                count++;
+            }
+        }
+        
+        if (count == 0) {
+            showEmptyContacts();
+        }
+    }
+
+    private void showEmptyContacts() {
+        TextView empty = new TextView(getContext());
+        empty.setText("No contacts yet");
+        empty.setPadding(20, 0, 20, 0);
+        empty.setTextColor(ContextCompat.getColor(getContext(), R.color.text_gray));
+        mostActiveContainer.addView(empty);
+    }
+
+    private void addMostActiveView(Transaction tx) {
+        View view = LayoutInflater.from(getContext()).inflate(R.layout.item_most_active, mostActiveContainer, false);
+        View profileContainer = view.findViewById(R.id.layoutProfileContainer);
+        TextView name = view.findViewById(R.id.tvActiveName);
+
+        name.setText(tx.relatedUserName != null ? tx.relatedUserName.split(" ")[0] : "User");
+        ProfileUtils.setProfileInitial(profileContainer, tx.relatedUserName, tx.relatedUserColor);
+
+        view.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ContactDetailsActivity.class);
+            intent.putExtra("uid", tx.relatedUserUid);
+            intent.putExtra("name", tx.relatedUserName);
+            intent.putExtra("color", tx.relatedUserColor);
+            startActivity(intent);
+        });
+
+        mostActiveContainer.addView(view);
     }
 
     private void renderTransactions() {
@@ -165,6 +270,14 @@ public class HomeFragment extends Fragment {
                 addTransactionView(tx);
             }
         }
+    }
+
+    private void showEmptyHistory() {
+        TextView empty = new TextView(getContext());
+        empty.setText("No recent transactions");
+        empty.setPadding(40, 40, 40, 40);
+        empty.setTextColor(ContextCompat.getColor(getContext(), R.color.text_gray));
+        recentContainer.addView(empty);
     }
 
     private void addTransactionView(Transaction tx) {
@@ -192,7 +305,6 @@ public class HomeFragment extends Fragment {
         amount.setText("₪" + String.format(Locale.getDefault(), "%.2f", tx.amount));
         amount.setTextColor(ContextCompat.getColor(getContext(), R.color.amount_text));
 
-        // Show description if it exists
         if (tx.description != null && !tx.description.isEmpty()) {
             description.setVisibility(View.VISIBLE);
             description.setText(tx.description);
@@ -256,8 +368,13 @@ public class HomeFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot otherSnap) {
                         if (!mySnap.exists() || !otherSnap.exists()) return;
 
-                        double myBal = Double.parseDouble(mySnap.child("balance").getValue().toString());
-                        double otherBal = Double.parseDouble(otherSnap.child("balance").getValue().toString());
+                        Object myBalObj = mySnap.child("balance").getValue();
+                        Object otherBalObj = otherSnap.child("balance").getValue();
+                        
+                        if (myBalObj == null || otherBalObj == null) return;
+
+                        double myBal = Double.parseDouble(myBalObj.toString());
+                        double otherBal = Double.parseDouble(otherBalObj.toString());
 
                         if (accept) {
                             if ("sent".equals(tx.type)) {
@@ -268,125 +385,26 @@ public class HomeFragment extends Fragment {
                                 updates.put("Users/" + myUid + "/balance", myBal - tx.amount);
                                 updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
                             } else {
+                                if (otherBal < tx.amount) {
+                                    Toast.makeText(getContext(), "Requester has insufficient funds", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
                                 updates.put("Users/" + myUid + "/balance", myBal + tx.amount);
-                            }
-                        } else {
-                            if ("received".equals(tx.type)) {
-                                updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal + tx.amount);
+                                updates.put("Users/" + tx.relatedUserUid + "/balance", otherBal - tx.amount);
                             }
                         }
-                        
-                        finalizeRequestUpdate(tx, status, updates);
+
+                        updates.put("Users/" + myUid + "/transactions/" + tx.id + "/status", status);
+                        updates.put("Users/" + tx.relatedUserUid + "/transactions/" + tx.id + "/status", status);
+
+                        FirebaseDatabase.getInstance().getReference().updateChildren(updates)
+                                .addOnSuccessListener(aVoid -> {
+                                    String msg = accept ? "Transaction completed" : "Transaction declined";
+                                    Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                                });
                     }
                     @Override public void onCancelled(@NonNull DatabaseError error) {}
                 });
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
-
-    private void finalizeRequestUpdate(Transaction tx, String status, Map<String, Object> updates) {
-        updates.put("Users/" + myUid + "/transactions/" + tx.id + "/status", status);
-        updates.put("Users/" + tx.relatedUserUid + "/transactions/" + tx.id + "/status", status);
-        
-        FirebaseDatabase.getInstance().getReference().updateChildren(updates).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                String msg = status.equals("completed") ? "Transaction completed!" : "Transaction declined.";
-                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void loadRecentActivity() {
-        if (mUserRef == null) return;
-        Query query = mUserRef.child("transactions").orderByChild("timestamp").limitToLast(3);
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                recentTransactions.clear();
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    recentTransactions.add(data.getValue(Transaction.class));
-                }
-                Collections.reverse(recentTransactions);
-                renderTransactions();
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
-
-    private void showEmptyHistory() {
-        TextView empty = new TextView(getContext());
-        empty.setText("No recent transactions");
-        empty.setTextColor(ContextCompat.getColor(getContext(), R.color.text_gray));
-        empty.setGravity(android.view.Gravity.CENTER);
-        empty.setPadding(0, 80, 0, 80);
-        recentContainer.addView(empty);
-    }
-
-    private void loadMostActive() {
-        if (mUserRef == null) return;
-        mUserRef.child("frequencies").orderByValue().limitToLast(4)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (!isAdded() || getContext() == null) return;
-                        
-                        mostActiveContainer.removeAllViews();
-                        displayedMostActiveUids.clear();
-                        
-                        List<String> userIds = new ArrayList<>();
-                        for (DataSnapshot data : snapshot.getChildren()) userIds.add(data.getKey());
-                        Collections.reverse(userIds);
-                        
-                        if (userIds.isEmpty()) {
-                            showEmptyMostActive();
-                        } else {
-                            for (String id : userIds) fetchAndAddActiveContact(id);
-                        }
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError error) {}
-                });
-    }
-
-    private void showEmptyMostActive() {
-        TextView empty = new TextView(getContext());
-        empty.setText("No contacts yet");
-        empty.setTextColor(ContextCompat.getColor(getContext(), R.color.text_gray));
-        empty.setGravity(android.view.Gravity.CENTER);
-        empty.setPadding(0, 80, 0, 80);
-        mostActiveContainer.addView(empty);
-    }
-
-    private void fetchAndAddActiveContact(String userId) {
-        mUsersRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded() || getContext() == null) return;
-                
-                if (displayedMostActiveUids.contains(userId)) return;
-                displayedMostActiveUids.add(userId);
-
-                User u = snapshot.getValue(User.class);
-                if (u != null) {
-                    if (u.uid == null) u.uid = userId;
-                    
-                    View view = LayoutInflater.from(getContext()).inflate(R.layout.item_most_active, mostActiveContainer, false);
-                    View profileContainer = view.findViewById(R.id.layoutProfileContainer);
-                    
-                    ProfileUtils.setProfileInitial(profileContainer, u.displayName, u.profileColor);
-
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-                    view.setLayoutParams(params);
-                    ((TextView) view.findViewById(R.id.tvActiveName)).setText(u.displayName.split(" ")[0]);
-                    view.setOnClickListener(v -> {
-                        Intent intent = new Intent(getActivity(), ContactDetailsActivity.class);
-                        intent.putExtra("contact_uid", u.uid);
-                        intent.putExtra("contact_name", u.displayName);
-                        intent.putExtra("contact_color", u.profileColor);
-                        startActivity(intent);
-                    });
-                    mostActiveContainer.addView(view);
-                }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });

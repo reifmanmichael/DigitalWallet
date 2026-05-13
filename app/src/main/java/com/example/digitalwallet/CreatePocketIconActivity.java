@@ -1,8 +1,6 @@
 package com.example.digitalwallet;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -108,9 +106,6 @@ public class CreatePocketIconActivity extends AppCompatActivity {
                 
                 Pocket pocket = new Pocket(key, pocketName, initialAmount, pocketType, "Savings".equals(pocketType));
                 pocket.iconName = iconName;
-                pocket.interestRate = interestRate;
-                pocket.lockEndDate = lockEndDate;
-                pocket.initialDeposit = initialAmount;
 
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("balance", currentBalance - initialAmount);
@@ -132,7 +127,7 @@ public class CreatePocketIconActivity extends AppCompatActivity {
     }
 
     class IconAdapter extends RecyclerView.Adapter<IconAdapter.ViewHolder> {
-        List<Integer> list;
+        final List<Integer> list;
         int selectedPos = -1;
 
         IconAdapter(List<Integer> list) { this.list = list; }
@@ -173,8 +168,8 @@ public class CreatePocketIconActivity extends AppCompatActivity {
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            ImageView imgIcon;
-            MaterialCardView cardBg;
+            final ImageView imgIcon;
+            final MaterialCardView cardBg;
             ViewHolder(View v) {
                 super(v);
                 imgIcon = v.findViewById(R.id.imgIconChoice);

@@ -1,19 +1,13 @@
 package com.example.digitalwallet.Fragments;
 
 import android.graphics.Color;
-import android.graphics.DashPathEffect;
-import android.graphics.LinearGradient;
-import android.graphics.Shader;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,7 +21,6 @@ import com.example.digitalwallet.Model.Transaction;
 import com.example.digitalwallet.Model.User;
 import com.example.digitalwallet.R;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -73,10 +66,10 @@ public class ActivityFragment extends Fragment {
     private Button btnAcceptProposal, btnDenyProposal;
     private MaterialButtonToggleGroup toggleGroup;
     
-    private List<Transaction> allTransactions = new ArrayList<>();
+    private final List<Transaction> allTransactions = new ArrayList<>();
     private User currentUser;
     private String timeframe = "week";
-    private OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = new OkHttpClient();
     private final List<String> currentChartLabels = new ArrayList<>();
 
     // AI Proposal State
@@ -233,13 +226,12 @@ public class ActivityFragment extends Fragment {
                     }
                 });
             }
-            @Override public void onError(Throwable error) {
-                if (!isAdded()) return;
-                getActivity().runOnUiThread(() -> {
-                    pbAiLoading.setVisibility(View.GONE);
-                    tvAiInsights.setText("AI Analyst is currently unavailable.");
-                });
+
+            @Override
+            public void onError() {
+
             }
+
         });
     }
 

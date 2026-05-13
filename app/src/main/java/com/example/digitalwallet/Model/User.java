@@ -12,11 +12,11 @@ public class User {
     public double bankBalance;
     public String profileColor;
     
-    // Maps to store nested Firebase data and prevent warnings
+
     public Map<String, Object> transactions = new HashMap<>();
     public Map<String, Integer> frequencies = new HashMap<>();
     public Map<String, Boolean> saved_contacts = new HashMap<>();
-    public Map<String, Object> pockets = new HashMap<>(); // Added to fix the warning
+    public Map<String, Object> pockets = new HashMap<>();
 
     public User() {}
 

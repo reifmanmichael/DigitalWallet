@@ -55,7 +55,7 @@ public class PocketDetailsActivity extends AppCompatActivity {
     private View btnWithdraw, btnDeposit, btnMore, layoutLockStatus;
     private ImageButton ibWithdraw, ibDeposit, ibMore;
     private RecyclerView recyclerActivity;
-    private List<Transaction> activityList = new ArrayList<>();
+    private final List<Transaction> activityList = new ArrayList<>();
     private ActivityAdapter adapter;
 
     @Override
@@ -141,7 +141,9 @@ public class PocketDetailsActivity extends AppCompatActivity {
         dialog.setContentView(view);
 
         // Make background transparent to show rounded corners from XML
-        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        int bottomSheetId = getResources().getIdentifier("design_bottom_sheet", "id", "com.google.android.material");
+        View bottomSheet = dialog.findViewById(bottomSheetId);
+
         if (bottomSheet != null) {
             bottomSheet.setBackgroundResource(android.R.color.transparent);
         }
@@ -241,7 +243,8 @@ public class PocketDetailsActivity extends AppCompatActivity {
         View view = getLayoutInflater().inflate(R.layout.layout_confirm_delete, null);
         dialog.setContentView(view);
 
-        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        int bottomSheetId = getResources().getIdentifier("design_bottom_sheet", "id", "com.google.android.material");
+        View bottomSheet = dialog.findViewById(bottomSheetId);
         if (bottomSheet != null) {
             bottomSheet.setBackgroundResource(android.R.color.transparent);
         }
@@ -376,7 +379,7 @@ public class PocketDetailsActivity extends AppCompatActivity {
     }
 
     private class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.ViewHolder> {
-        List<Transaction> list;
+        final List<Transaction> list;
         ActivityAdapter(List<Transaction> list) { this.list = list; }
 
         @NonNull @Override
@@ -413,9 +416,11 @@ public class PocketDetailsActivity extends AppCompatActivity {
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView name, date, amount;
-            ImageView icon;
-            View profileContainer;
+            final TextView name;
+            final TextView date;
+            final TextView amount;
+            final ImageView icon;
+            final View profileContainer;
             ViewHolder(View v) {
                 super(v);
                 name = v.findViewById(R.id.tvTxName);

@@ -2,15 +2,15 @@ package com.example.digitalwallet.Model;
 
 public class Transaction {
     public String id;
-    public String type; // sent, received
-    public String status; // pending, completed, declined
+    public String type;
+    public String status;
     public double amount;
     public long timestamp;
     public String relatedUserUid;
     public String relatedUserName;
     public String relatedUserColor;
-    public String initiatorUid; // Who started the transaction
-    public String description; // Added description field
+    public String initiatorUid;
+    public String description;
 
     public Transaction() {}
 

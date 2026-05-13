@@ -88,9 +88,7 @@ public class CreateSavingsPlanActivity extends AppCompatActivity {
 
         Pocket pocket = new Pocket(key, pocketName, amount, pocketType, true);
         pocket.iconName = "ic_savings_illustration"; // Pre-determined icon
-        pocket.interestRate = 0.04;
         pocket.lockEndDate = cal.getTimeInMillis();
-        pocket.initialDeposit = amount;
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("balance", currentMainBalance - amount);

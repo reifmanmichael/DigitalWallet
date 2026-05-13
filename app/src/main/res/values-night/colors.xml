@@ -10,8 +10,7 @@
     <color name="text_black">#FFFFFF</color>
     <color name="text_gray">#DADAE4</color>
     <color name="text_gray_dark">#EBEBF5</color>
-    <color name="text_light">#FFFFFF</color>
-    
+
     <color name="amount_text">#D1D1D6</color>
     
     <!-- Transaction Icon Colors - Dark Mode -->
@@ -27,13 +26,11 @@
 
     <!-- Specific for Form Cards in Dark Mode -->
     <color name="card_light_teal">#2C2C2E</color>
-    <color name="form_header_text">#FFFFFF</color>
 
     <!-- Premium Fintech Gold for Dark Mode -->
     <color name="pocket_savings_tint">#3D3400</color>
-    <color name="pocket_form_card_bg">#FFCC00</color> 
-    <color name="pocket_illustration_bg">#2C2C2E</color>
-    
+    <color name="pocket_form_card_bg">#FFCC00</color>
+
     <color name="text_on_pocket_card">#000000</color>
 
     <!-- Deposit and Withdraw Colors - Custom Theme Dark Mode -->

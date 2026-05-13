@@ -35,7 +35,6 @@
 
         <!-- AI Insights Card (The "Brain") -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardAiInsights"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="24dp"

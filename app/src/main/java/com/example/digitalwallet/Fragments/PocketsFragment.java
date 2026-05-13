@@ -1,13 +1,10 @@
 package com.example.digitalwallet.Fragments;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -187,7 +184,7 @@ public class PocketsFragment extends Fragment {
     }
 
     private class PocketAdapter extends RecyclerView.Adapter<PocketAdapter.ViewHolder> {
-        List<Pocket> list;
+        final List<Pocket> list;
         PocketAdapter(List<Pocket> list) { this.list = list; }
 
         @NonNull @Override
@@ -225,9 +222,12 @@ public class PocketsFragment extends Fragment {
         @Override public int getItemCount() { return list.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView name, amount, type;
-            ImageView icon, imgLockBadge;
-            MaterialCardView cardView;
+            final TextView name;
+            final TextView amount;
+            final TextView type;
+            final ImageView icon;
+            final ImageView imgLockBadge;
+            final MaterialCardView cardView;
             ViewHolder(View v) {
                 super(v);
                 name = v.findViewById(R.id.tvPocketName);

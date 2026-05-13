@@ -17,9 +17,10 @@ public class CustomPopup {
         BottomSheetDialog dialog = new BottomSheetDialog(context);
         View view = View.inflate(context, R.layout.layout_custom_popup, null);
         dialog.setContentView(view);
-        
-        // Ensure background of the dialog is transparent so the rounded corners of the layout show
-        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+
+        int bottomSheetId = context.getResources().getIdentifier("design_bottom_sheet", "id", "com.google.android.material");
+        View bottomSheet = dialog.findViewById(bottomSheetId);
+
         if (bottomSheet != null) {
             bottomSheet.setBackgroundResource(android.R.color.transparent);
         }
@@ -42,8 +43,5 @@ public class CustomPopup {
     public static void show(Context context, String title, String message) {
         show(context, title, message, null);
     }
-    
-    public static void show(Context context, String message) {
-        show(context, "Notification", message, null);
-    }
+
 }
