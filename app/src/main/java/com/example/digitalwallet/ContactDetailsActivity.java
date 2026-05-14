@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.digitalwallet.Model.Transaction;
-import com.example.digitalwallet.Transfers.TransferAmountActivity;
 import com.example.digitalwallet.Utils.ProfileUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -30,6 +29,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class ContactDetailsActivity extends AppCompatActivity {
 
@@ -52,27 +52,32 @@ public class ContactDetailsActivity extends AppCompatActivity {
         contactName = getIntent().getStringExtra("contact_name");
         contactColor = getIntent().getStringExtra("contact_color");
 
+        if (contactUid == null) {
+            finish();
+            return;
+        }
+
         // UI Refs
         View profileContainer = findViewById(R.id.layoutProfileContainer);
         TextView tvName = findViewById(R.id.tvContactName);
         activityContainer = findViewById(R.id.activityContainer);
 
         // Set Header
-        tvName.setText(contactName);
+        tvName.setText(contactName != null ? contactName : "Unknown");
         ProfileUtils.setProfileInitial(profileContainer, contactName, contactColor);
 
         // Buttons
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         
         findViewById(R.id.btnSend).setOnClickListener(v -> {
-            Intent intent = new Intent(this, TransferAmountActivity.class);
+            Intent intent = new Intent(this, com.example.digitalwallet.Transfers.TransferAmountActivity.class);
             intent.putExtra("recipient_uid", contactUid);
             intent.putExtra("recipient_name", contactName);
             startActivity(intent);
         });
 
         findViewById(R.id.btnRequest).setOnClickListener(v -> {
-            Intent intent = new Intent(this, TransferAmountActivity.class);
+            Intent intent = new Intent(this, com.example.digitalwallet.Transfers.TransferAmountActivity.class);
             intent.putExtra("recipient_uid", contactUid);
             intent.putExtra("recipient_name", contactName);
             intent.putExtra("mode", "request"); 
@@ -88,12 +93,15 @@ public class ContactDetailsActivity extends AppCompatActivity {
         mDatabase.orderByChild("timestamp").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
+                
                 activityContainer.removeAllViews();
                 List<Transaction> list = new ArrayList<>();
 
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Transaction tx = data.getValue(Transaction.class);
-                    if (tx != null && contactUid.equals(tx.relatedUserUid)) {
+                    // Null-safe comparison using Objects.equals
+                    if (tx != null && Objects.equals(contactUid, tx.relatedUserUid)) {
                         list.add(tx);
                     }
                 }

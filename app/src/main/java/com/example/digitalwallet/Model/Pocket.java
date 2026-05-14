@@ -8,7 +8,9 @@ public class Pocket {
     public boolean isLocked;
     public boolean isClosed;
     public String iconName;
-
+    public double interestRate;
+    public long lockEndDate;
+    public double initialDeposit;
 
     public Pocket() {}
 

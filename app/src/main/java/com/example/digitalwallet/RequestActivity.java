@@ -16,8 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.digitalwallet.Model.User;
-import com.example.digitalwallet.Transfers.TransferAmountActivity;
-import com.example.digitalwallet.Transfers.TransferMobileActivity;
 import com.example.digitalwallet.Utils.ProfileUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -59,7 +57,7 @@ public class RequestActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         findViewById(R.id.btnMobileTransfer).setOnClickListener(v -> {
-            Intent intent = new Intent(this, TransferMobileActivity.class);
+            Intent intent = new Intent(this, com.example.digitalwallet.Transfers.TransferMobileActivity.class);
             intent.putExtra("mode", "request");
             startActivity(intent);
         });
@@ -168,7 +166,7 @@ public class RequestActivity extends AppCompatActivity {
             ProfileUtils.setProfileInitial(holder.profileContainer, u.displayName, u.profileColor);
 
             holder.itemView.setOnClickListener(v -> {
-                Intent intent = new Intent(RequestActivity.this, TransferAmountActivity.class);
+                Intent intent = new Intent(RequestActivity.this, com.example.digitalwallet.Transfers.TransferAmountActivity.class);
                 intent.putExtra("recipient_uid", u.uid);
                 intent.putExtra("recipient_name", u.displayName);
                 intent.putExtra("mode", "request");

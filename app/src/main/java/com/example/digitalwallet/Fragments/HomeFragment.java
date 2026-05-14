@@ -20,13 +20,13 @@ import androidx.fragment.app.Fragment;
 import com.example.digitalwallet.ContactDetailsActivity;
 import com.example.digitalwallet.DepositActivity;
 import com.example.digitalwallet.HistoryActivity;
+import com.example.digitalwallet.RequestActivity;
+import com.example.digitalwallet.SendActivity;
+import com.example.digitalwallet.WithdrawActivity;
 import com.example.digitalwallet.Model.Transaction;
 import com.example.digitalwallet.Model.User;
 import com.example.digitalwallet.R;
-import com.example.digitalwallet.RequestActivity;
-import com.example.digitalwallet.SendActivity;
 import com.example.digitalwallet.Utils.ProfileUtils;
-import com.example.digitalwallet.WithdrawActivity;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -160,8 +160,9 @@ public class HomeFragment extends Fragment {
                         for (DataSnapshot data : snapshot.getChildren()) {
                             Transaction tx = data.getValue(Transaction.class);
                             if (tx != null) {
-
-                                if ("AI".equalsIgnoreCase(tx.relatedUserName) || "Bank".equalsIgnoreCase(tx.relatedUserName)) {
+                                // Filter out systematic transactions
+                                String name = tx.relatedUserName != null ? tx.relatedUserName.toLowerCase() : "";
+                                if (name.contains("ai") || name.contains("bank") || name.contains("pocket")) {
                                     continue;
                                 }
                                 tx.id = data.getKey();
@@ -193,8 +194,9 @@ public class HomeFragment extends Fragment {
                         for (DataSnapshot data : snapshot.getChildren()) {
                             Transaction tx = data.getValue(Transaction.class);
                             if (tx != null && tx.relatedUserUid != null) {
-
-                                if ("AI".equalsIgnoreCase(tx.relatedUserName) || "Bank".equalsIgnoreCase(tx.relatedUserName)) {
+                                // Filter out systematic transactions
+                                String name = tx.relatedUserName != null ? tx.relatedUserName.toLowerCase() : "";
+                                if (name.contains("ai") || name.contains("bank") || name.contains("pocket")) {
                                     continue;
                                 }
                                 counts.put(tx.relatedUserUid, counts.getOrDefault(tx.relatedUserUid, 0) + 1);
@@ -250,9 +252,10 @@ public class HomeFragment extends Fragment {
 
         view.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), ContactDetailsActivity.class);
-            intent.putExtra("uid", tx.relatedUserUid);
-            intent.putExtra("name", tx.relatedUserName);
-            intent.putExtra("color", tx.relatedUserColor);
+            // FIX: Use matching keys expected by ContactDetailsActivity
+            intent.putExtra("contact_uid", tx.relatedUserUid);
+            intent.putExtra("contact_name", tx.relatedUserName);
+            intent.putExtra("contact_color", tx.relatedUserColor);
             startActivity(intent);
         });
 

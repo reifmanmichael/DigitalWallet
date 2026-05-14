@@ -47,15 +47,15 @@
             android:name=".HistoryActivity"
             android:exported="false" />
         <activity
-            android:name=".Transfers.TransferMobileActivity"
+            android:name="com.example.digitalwallet.Transfers.TransferMobileActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".Transfers.TransferReasonActivity"
+            android:name="com.example.digitalwallet.Transfers.TransferReasonActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".Transfers.TransferAmountActivity"
+            android:name="com.example.digitalwallet.Transfers.TransferAmountActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
